@@ -13,6 +13,7 @@
     { id: "metrics", label: "Metrics & Evals", icon: "📊", step: 2 },
     { id: "traces", label: "Traces & Tagging", icon: "🔬", step: 3 },
     { id: "hotspots", label: "Hotspots & Fixes", icon: "🎯", step: 4 },
+    { id: "versions", label: "Version History", icon: "🧬" },
     { id: "config", label: "Agent Config", icon: "⚙" },
   ];
 
@@ -57,6 +58,7 @@
       case "metrics": return V.metrics(state);
       case "traces": return V.traces(state);
       case "hotspots": return V.hotspots(state);
+      case "versions": return V.versions(state);
       case "config": return V.config(state);
       default: return V.overview(state);
     }

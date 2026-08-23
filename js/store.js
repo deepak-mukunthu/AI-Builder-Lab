@@ -36,17 +36,44 @@
     State.metrics = global.Evals.evaluate(traces);
     State.hotspots = global.Hotspots.detectHotspots(traces);
 
-    // Record a point in flywheel history.
-    State.history.push({
+    // Record a point in flywheel history. A full config snapshot is kept so
+    // the Versions view can diff exactly what changed at each layer. Re-running
+    // the SAME version (e.g. pressing "Run" twice) replaces its point rather
+    // than appending a duplicate, so history stays one-entry-per-version.
+    // Per-scenario pass/fail snapshot (from the base, un-salted trace of each
+    // scenario) so the Versions view can show exactly which scenarios flipped
+    // pass↔fail when a fix landed.
+    const scenarioResults = {};
+    for (const s of SCENARIOS) {
+      const tr = traces.find((t) => t.scenarioId === s.id); // first = base run
+      if (!tr) continue;
+      const g = global.Evals.gradeTrace(tr);
+      scenarioResults[s.id] = {
+        id: s.id, intent: tr.intent, userText: tr.userText,
+        answer: tr.answer, pass: g.score >= 0.999, score: g.score,
+        failedChecks: Object.entries(g.checks).filter(([, v]) => !v).map(([k]) => k),
+        issueLayers: [...new Set(tr.issues.map((i) => i.layer))],
+      };
+    }
+
+    const point = {
       version: State.config.version,
+      config: JSON.parse(JSON.stringify(State.config)),
       quality: State.metrics.quality,
+      rates: { ...State.metrics.rates },
       task_success: State.metrics.rates.task_success,
       policy_safety: State.metrics.rates.policy_safety,
       grounding: State.metrics.rates.grounding,
       containment: State.metrics.containment,
+      toolErrorRate: State.metrics.toolErrorRate,
+      p50: State.metrics.p50,
       p95: State.metrics.p95,
       avgTokens: State.metrics.avgTokens,
-    });
+      scenarios: scenarioResults,
+    };
+    const existing = State.history.findIndex((h) => h.version === point.version);
+    if (existing >= 0) State.history[existing] = point;
+    else State.history.push(point);
     emit();
     return State.metrics;
   }
@@ -111,9 +138,61 @@
     return [...new Set(trace.issues.map((i) => i.code))];
   }
 
+  // Diff two config snapshots per layer → { layer: [{ key, from, to }] }.
+  // `before` may be null (the v1 baseline has nothing before it).
+  const LAYERS = ["model", "context", "memory", "harness", "tools"];
+  function diffConfigs(before, after) {
+    const out = {};
+    for (const L of LAYERS) {
+      const changes = [];
+      const a = (after && after[L]) || {};
+      const b = (before && before[L]) || {};
+      for (const k of Object.keys(a)) {
+        const to = a[k], from = before ? b[k] : undefined;
+        if (!before || JSON.stringify(from) !== JSON.stringify(to))
+          changes.push({ key: k, from, to, isNew: !before });
+      }
+      out[L] = changes;
+    }
+    return out;
+  }
+
+  // Build the full version timeline: each entry pairs a history point with the
+  // config diff vs the previous version and the metric deltas.
+  function versionTimeline() {
+    return State.history.map((h, i) => {
+      const prev = i > 0 ? State.history[i - 1] : null;
+      const fix = State.fixLog.find((f) => f.version === h.version) || null;
+
+      // Scenarios that flipped fail→pass (fixed) or pass→fail (regressed)
+      // between the previous version and this one.
+      const fixed = [], regressed = [];
+      if (prev && prev.scenarios && h.scenarios) {
+        for (const id of Object.keys(h.scenarios)) {
+          const was = prev.scenarios[id], now = h.scenarios[id];
+          if (!was) continue;
+          if (!was.pass && now.pass) fixed.push({ before: was, after: now });
+          else if (was.pass && !now.pass) regressed.push({ before: was, after: now });
+        }
+      }
+
+      return {
+        ...h,
+        index: i,
+        prevVersion: prev ? prev.version : null,
+        diff: diffConfigs(prev ? prev.config : null, h.config),
+        fix,
+        qualityDelta: prev ? h.quality - prev.quality : 0,
+        fixedScenarios: fixed,
+        regressedScenarios: regressed,
+      };
+    });
+  }
+
   global.Store = {
     State, subscribe, emit, simulate, applyFix, resetAgent,
     addTag, removeTag, tagCounts, suggestedTags,
     reveal, isRevealed, scoreHypothesis,
+    diffConfigs, versionTimeline, LAYERS,
   };
 })(window);

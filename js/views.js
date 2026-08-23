@@ -14,6 +14,58 @@
     return `<span class="pill layer" style="background:${C.LAYER_COLORS[layer]}">${layer}</span>`;
   }
 
+  // Human-readable labels + explanations for every config knob, so version
+  // diffs read as plain English instead of raw JSON keys.
+  const KNOB_META = {
+    "model.name":                 { label: "Model", desc: "The generation model in use." },
+    "model.temperature":          { label: "Temperature", desc: "Sampling randomness. High values invite hallucinated numbers." },
+    "model.maxOutputTokens":      { label: "Max output tokens", desc: "Upper bound on the model's reply length." },
+    "context.systemPromptVersion":{ label: "System prompt", desc: "Which system prompt is loaded (v2 adds a scope guardrail)." },
+    "context.catalogTopK":        { label: "Catalog top-K", desc: "How many products are placed in the context window." },
+    "context.includePolicy":      { label: "Inject refund policy", desc: "Whether the refund window & cap are given to the model." },
+    "context.historyTurns":       { label: "History turns", desc: "How many prior turns are kept in context." },
+    "memory.enabled":             { label: "Profile memory", desc: "Whether the agent recalls the customer's saved profile/orders." },
+    "memory.recallAccuracy":      { label: "Recall accuracy", desc: "How reliably memory returns the right records." },
+    "harness.maxToolCalls":       { label: "Max tool calls", desc: "Tool-call budget per turn." },
+    "harness.validateToolArgs":   { label: "Validate tool args", desc: "Whether the harness checks tool arguments before dispatch." },
+    "harness.refundGuardrail":    { label: "Refund guardrail", desc: "Whether refunds are gated by the policy (window & cap)." },
+    "harness.retryOnToolError":   { label: "Retry on tool error", desc: "Whether the harness retries a failed tool call." },
+    "tools.pricingSource":        { label: "Pricing source", desc: "Where prices are read from (live vs stale cache)." },
+    "tools.inventorySource":      { label: "Inventory source", desc: "Where stock levels are read from." },
+  };
+  function knobLabel(layer, key) {
+    const m = KNOB_META[layer + "." + key];
+    return m ? m.label : key;
+  }
+  function knobDesc(layer, key) {
+    const m = KNOB_META[layer + "." + key];
+    return m ? m.desc : "";
+  }
+  function fmtVal(layer, key, v) {
+    if (v === undefined) return "—";
+    if (typeof v === "boolean") return v ? "on" : "off";
+    if (key === "systemPromptVersion") return "v" + v;
+    if (key === "temperature") return String(v);
+    if (typeof v === "number" && v > 0 && v < 1) return v; // accuracy etc.
+    return String(v);
+  }
+  // Is a change an improvement (green) or a regression (amber)? Used for arrows.
+  function changeTone(layer, key, from, to) {
+    const better = {
+      "model.temperature": to < from,
+      "context.catalogTopK": to > from,
+      "context.systemPromptVersion": to > from,
+      "context.includePolicy": to === true,
+      "memory.enabled": to === true,
+      "memory.recallAccuracy": to > from,
+      "harness.validateToolArgs": to === true,
+      "harness.refundGuardrail": to === true,
+      "harness.retryOnToolError": to === true,
+      "tools.pricingSource": to === "live",
+    }[layer + "." + key];
+    return better === undefined ? "neutral" : (better ? "up" : "down");
+  }
+
   // ---------------- OVERVIEW / FLYWHEEL ----------------
   function overview(state) {
     const m = state.metrics;
@@ -529,6 +581,159 @@
       </tbody></table></div>`:''}`;
   }
 
+  // ---------------- VERSIONS (version-by-version changes) ----------------
+  function versions(state) {
+    const timeline = S.versionTimeline();
+    if (!timeline.length) return `<div class="page-head"><h2>Version History</h2></div>
+      <div class="card"><div class="empty"><div class="big">🧬</div>No versions yet — run a simulation, then apply fixes to build a version history.</div></div>`;
+
+    // Metric columns tracked across versions.
+    const metricCols = [
+      ["Quality", (h) => h.quality, true],
+      ["Task success", (h) => h.rates.task_success, true],
+      ["Grounding", (h) => h.rates.grounding, true],
+      ["Policy safety", (h) => h.rates.policy_safety, true],
+      ["Scope", (h) => h.rates.scope_adherence, true],
+      ["No re-ask", (h) => h.rates.no_redundant_ask, true],
+      ["Containment", (h) => h.containment, true],
+      ["Tool errors", (h) => h.toolErrorRate, false],
+      ["p95 ms", (h) => h.p95, null],
+      ["Tokens", (h) => Math.round(h.avgTokens), null],
+    ];
+
+    // --- Compact matrix: metrics × versions, with per-step deltas. ---
+    function cell(col, h, prev) {
+      const [, get, higherBetter] = col;
+      const v = get(h);
+      const isRate = higherBetter !== null;
+      const disp = isRate ? Math.round(v * 100) + "%" : v;
+      let delta = "";
+      if (prev) {
+        const d = v - get(prev);
+        if (Math.abs(d) > (isRate ? 0.001 : 0.5)) {
+          const good = higherBetter === null ? null : (higherBetter ? d > 0 : d < 0);
+          const cls = good === null ? "" : (good ? "up" : "down");
+          const dd = isRate ? (d > 0 ? "+" : "") + Math.round(d * 100) : (d > 0 ? "+" : "") + Math.round(d);
+          delta = ` <span class="delta ${cls}" style="font-size:10px">${dd}</span>`;
+        }
+      }
+      return `<td class="mono">${disp}${delta}</td>`;
+    }
+
+    let matrix = `<div class="card"><h3>Metrics across versions</h3>
+      <div class="sub">Every version the agent has been through. Deltas are vs the previous version.</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Metric</th>
+      ${timeline.map((h) => `<th class="mono">${esc(h.version)}</th>`).join("")}</tr></thead><tbody>`;
+    for (const col of metricCols) {
+      matrix += `<tr><td style="color:var(--muted)">${esc(col[0])}</td>`;
+      timeline.forEach((h, i) => { matrix += cell(col, h, i > 0 ? timeline[i - 1] : null); });
+      matrix += `</tr>`;
+    }
+    matrix += `</tbody></table></div></div>`;
+
+    // --- Per-version change cards: what changed at each layer. ---
+    const cards = timeline.map((h) => {
+      const isBaseline = h.index === 0;
+      const changedLayers = H.LAYER_ORDER.filter((L) => h.diff[L] && h.diff[L].length);
+      let body = "";
+
+      if (isBaseline) {
+        body = `<div class="muted" style="font-size:13px;margin:6px 0 12px">Baseline agent — the starting configuration across all five layers.</div>`;
+        body += `<div class="row" style="gap:6px">${H.LAYER_ORDER.map((L) =>
+          `<span class="pill layer" style="background:${C.LAYER_COLORS[L]}">${L}</span>`).join("")}</div>`;
+      } else {
+        if (h.fix) body += `<div class="callout" style="margin:4px 0 12px">
+          <b>Fix:</b> ${esc(h.fix.label)} <span class="muted">— targeted the ${esc(h.fix.layer)} layer to resolve “${esc(h.fix.title)}”.</span></div>`;
+        // Group changes by layer.
+        body += changedLayers.map((L) => `
+          <div style="margin:10px 0 4px"><span class="pill layer" style="background:${C.LAYER_COLORS[L]}">${L}</span></div>
+          ${h.diff[L].map((ch) => {
+            const tone = changeTone(L, ch.key, ch.from, ch.to);
+            const arrow = tone === "up" ? "▲" : tone === "down" ? "▼" : "→";
+            const toneCls = tone === "up" ? "up" : tone === "down" ? "down" : "";
+            return `<div class="chg">
+              <div class="chg-head"><b>${esc(knobLabel(L, ch.key))}</b>
+                <span class="chg-vals mono">${esc(fmtVal(L, ch.key, ch.from))}
+                  <span class="delta ${toneCls}">${arrow}</span>
+                  ${esc(fmtVal(L, ch.key, ch.to))}</span></div>
+              <div class="chg-desc">${esc(knobDesc(L, ch.key))}</div>
+            </div>`;
+          }).join("")}
+        `).join("");
+        if (!changedLayers.length) body += `<div class="muted">Re-run with no config change.</div>`;
+      }
+
+      // --- Scenarios this version fixed (fail → pass) ---
+      if (!isBaseline && h.fixedScenarios && h.fixedScenarios.length) {
+        body += `<div style="margin-top:14px"><h3 style="margin:0 0 4px">
+          ✅ Scenarios fixed <span class="muted mono" style="font-size:11px">(${h.fixedScenarios.length} flipped fail → pass)</span></h3>
+          <div class="sub" style="margin-bottom:8px">Concrete conversations that this change repaired.</div>`;
+        for (const f of h.fixedScenarios) {
+          body += `<div class="fixed-scn">
+            <div class="fixed-scn-head">
+              <span class="pill pass">FIXED</span>
+              <span class="mono" style="font-size:11px">${esc(f.after.id)}</span>
+              <span class="pill" style="background:var(--track);color:var(--muted)">${esc(f.after.intent)}</span>
+              <span class="fixed-scn-q">"${esc(f.after.userText)}"</span>
+            </div>
+            <div class="ba-grid">
+              <div class="ba before"><div class="ba-lbl">before (${esc(h.prevVersion)}) — failed ${f.before.failedChecks.map(esc).join(", ")}</div>
+                <div class="ba-ans">${esc(f.before.answer)}</div></div>
+              <div class="ba after"><div class="ba-lbl">after (${esc(h.version)}) — passes ✓</div>
+                <div class="ba-ans">${esc(f.after.answer)}</div></div>
+            </div>
+          </div>`;
+        }
+        body += `</div>`;
+      }
+
+      // Preventive fix: config changed but no scenario flipped on this run.
+      if (!isBaseline && changedLayers.length &&
+          (!h.fixedScenarios || !h.fixedScenarios.length) &&
+          (!h.regressedScenarios || !h.regressedScenarios.length)) {
+        body += `<div class="callout" style="margin-top:12px;border-left-color:var(--warn)">
+          <b>Preventive hardening.</b> No scenario flipped on this run — this defect is
+          intermittent (it depends on sampling), so the fix removes a latent failure that
+          won't always show in a single pass. It protects quality under real, varied traffic.</div>`;
+      }
+
+      // --- Any regressions introduced (pass → fail) ---
+      if (!isBaseline && h.regressedScenarios && h.regressedScenarios.length) {
+        body += `<div style="margin-top:12px"><h3 style="margin:0 0 4px">⚠️ Regressions
+          <span class="muted mono" style="font-size:11px">(${h.regressedScenarios.length} flipped pass → fail)</span></h3>`;
+        for (const f of h.regressedScenarios)
+          body += `<div class="fixed-scn"><div class="fixed-scn-head">
+            <span class="pill fail">REGRESSED</span>
+            <span class="mono" style="font-size:11px">${esc(f.after.id)}</span>
+            <span class="fixed-scn-q">"${esc(f.after.userText)}"</span></div></div>`;
+        body += `</div>`;
+      }
+
+      const qd = h.qualityDelta;
+      return `<div class="card" style="border-left:4px solid ${isBaseline ? 'var(--border)' : C.LAYER_COLORS[(h.fix && h.fix.layer) || 'context']}">
+        <div class="row">
+          <h3 style="margin:0">${esc(h.version)}${isBaseline ? ' — baseline' : ''}</h3>
+          ${h.prevVersion ? `<span class="muted mono" style="font-size:11px">from ${esc(h.prevVersion)}</span>` : ''}
+          <div class="spacer"></div>
+          <span class="mono" style="color:${C.scoreColor(h.quality)};font-size:18px">${Math.round(h.quality * 100)}</span>
+          <span class="muted" style="font-size:11px">/100</span>
+          ${!isBaseline && Math.abs(qd) > 0.001 ? `<span class="delta ${qd >= 0 ? 'up' : 'down'}">${qd >= 0 ? '▲ +' : '▼ '}${Math.round(qd * 100)}</span>` : ''}
+        </div>
+        ${body}
+      </div>`;
+    }).join("");
+
+    return `
+    <div class="page-head">
+      <h2>Version History — what changed, layer by layer</h2>
+      <p>Every iteration of the agent, with the exact configuration change at each layer
+         (model, context, memory, harness, tools) and how the metrics responded. This is the
+         audit trail of the flywheel: which knob moved, why, and what it bought.</p>
+    </div>
+    ${matrix}
+    <div style="margin-top:16px">${cards}</div>`;
+  }
+
   // ---------------- CONFIG (inspect the agent) ----------------
   function config(state) {
     const c = state.config;
@@ -557,5 +762,5 @@
     </div>`;
   }
 
-  global.Views = { overview, chat, simulate, metrics, traces, traceDetail, hotspots, config, traceTable };
+  global.Views = { overview, chat, simulate, metrics, traces, traceDetail, hotspots, versions, config, traceTable };
 })(window);
