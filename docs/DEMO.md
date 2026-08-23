@@ -10,9 +10,12 @@ deterministic simulator, so you'll see the same results.
 ## 0. Open the lab
 
 ```bash
-python3 -m http.server 8777      # from the repo root
+python3 serve.py                 # from the repo root (no-cache dev server)
 # visit http://localhost:8777
 ```
+
+`serve.py` sends no-cache headers, so a plain browser refresh always loads the
+latest assets — handy while you're poking around.
 
 You land on the **Flywheel** page. A v1 simulation has already run, so the headline
 Quality Score reads around **76 / 100**. That's our starting point.
@@ -103,7 +106,36 @@ previously masked — a realistic dynamic where one fix exposes the next hotspot
 
 ---
 
-## 5. Watch the wheel turn (Flywheel)
+## 5. Read the audit trail (Version History)
+
+Go to **🧬 Version History**. This is where each fix becomes accountable — not just
+"quality went up," but *what changed* and *which conversations it repaired*.
+
+**a. The metrics matrix.** Every metric (quality, task success, grounding, policy
+safety, scope, no-re-ask, containment, tool errors, p95, tokens) is a row; each
+version is a column, with color-coded per-step deltas. Scan across a row to see when a
+given metric finally moved.
+
+**b. Per-layer config diffs.** Each version card lists exactly which knob changed at
+which layer, as `from → to` in plain English with a one-line reason. Watch **v6**: a
+single fix flips *two* layers — `context.includePolicy` and `harness.refundGuardrail` —
+because a safe refund needs both the policy in context *and* the guardrail to enforce it.
+
+**c. Scenarios fixed.** The concrete payoff: the actual conversations that flipped
+**fail → pass**, each with its before/after answer side by side. For example:
+
+- **v2** repairs the availability/pricing questions that the truncated catalog broke.
+- **v5** repairs the stale-price answers (Volt Power Bank now quotes the live $69).
+- **v6** repairs the unsafe $400 refund — it's now correctly held for review.
+
+Versions whose fix is *intermittent* (it hardens against a failure mode without
+flipping a specific scenario on this deterministic run — e.g. v4's temperature drop and
+v7's recall-accuracy bump) are labeled **preventive hardening** rather than pretending
+to be no-ops. Any regression (pass → fail) would be flagged in red here too.
+
+---
+
+## 6. Watch the wheel turn (Flywheel)
 
 Return to **◎ Flywheel**. The quality trend line now climbs 76 → 100, and the
 **Improvement Log** lists every fix with its layer and quality delta. This is the
@@ -111,14 +143,14 @@ payoff: a visible, auditable record of data-driven improvement.
 
 ---
 
-## 6. Inspect the improved agent (Agent Config)
+## 7. Inspect the improved agent (Agent Config)
 
 Go to **⚙ Agent Config**. Every knob changed by a fix is flagged in green with a ✎.
 This is the artifact the flywheel produced — the same config that now scores 100.
 
 ---
 
-## 7. Start over
+## 8. Start over
 
 On **🧪 Simulate**, click **↺ Reset agent to v1** to restore the broken agent and run
 the loop again — perhaps fixing hotspots in a different order to see how the exposure

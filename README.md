@@ -35,11 +35,12 @@ cd data-flywheel-agent-lab
 open index.html            # macOS  (or double-click the file)
 
 # Option B — serve it (recommended; avoids file:// quirks)
-python3 -m http.server 8777
-# then visit http://localhost:8777
+python3 serve.py           # no-cache dev server on http://localhost:8777
+# (or: python3 -m http.server 8777)
 ```
 
-The app auto-runs one simulation on load, so it opens with data ready to explore.
+`serve.py` sends no-cache headers, so a normal browser refresh always loads the latest
+assets. The app auto-runs one simulation on load, so it opens with data ready to explore.
 
 ---
 
@@ -85,6 +86,7 @@ each seeded defect is fixed by mutating exactly one layer:
 | **📊 Metrics & Evals** | Objective, ground-truth scoring + operational metrics + a blended Quality Score. |
 | **🔬 Traces & Tagging** | The human-review workbench: expected-vs-actual, step-by-step execution log with raw payloads, hypothesis tagging, and reveal-root-cause. |
 | **🎯 Hotspots & Fixes** | Clustered failures ranked by impact, a layer heat-map, and one-click layered fixes. |
+| **🧬 Version History** | The audit trail: a metrics matrix across all versions, per-layer config diffs, and the concrete before/after scenarios each version fixed. |
 | **⚙ Agent Config** | The full harness state across all five layers; values changed by fixes are flagged. |
 
 ---
@@ -125,6 +127,25 @@ This mirrors the real workflow: manual review builds intuition, then automated d
 
 ---
 
+## The audit trail (Version History)
+
+Every fix produces a new agent version, and the **🧬 Version History** page is the record of
+what changed and what it bought:
+
+1. **Metrics matrix** — every metric (quality, task success, grounding, policy safety, scope,
+   no-re-ask, containment, tool errors, p95, tokens) as a row, one column per version, with
+   color-coded per-step deltas.
+2. **Per-layer config diffs** — for each version, exactly which knob changed at which layer
+   (model / context / memory / harness / tools), shown as `from → to` in plain English with a
+   one-line explanation. A single fix can touch more than one layer (e.g. the refund fix flips
+   both `context.includePolicy` and `harness.refundGuardrail`).
+3. **Scenarios fixed** — the concrete payoff: the actual conversations that flipped
+   **fail → pass**, each with a before/after answer. Regressions (pass → fail) are flagged, and
+   intermittent fixes that don't happen to flip a scenario on a single run are labeled
+   *preventive hardening* rather than pretending to be no-ops.
+
+---
+
 ## Suggested demo walkthrough
 
 See **[docs/DEMO.md](docs/DEMO.md)** for a full guided tour. The short version:
@@ -133,8 +154,9 @@ See **[docs/DEMO.md](docs/DEMO.md)** for a full guided tour. The short version:
 2. **Metrics** → note low task success and grounding.
 3. **Traces** → click a red-scored row, expand the context window, form a hypothesis, reveal the root cause.
 4. **Hotspots** → apply the top-ranked fix; watch the toast report the quality delta.
-5. Repeat the fixes → return to **Flywheel** to see the trend line climb to 100.
-6. **Simulate → Reset agent to v1** to start over.
+5. **Version History** → see the config diff and the exact scenarios that fix repaired (before/after).
+6. Repeat the fixes → return to **Flywheel** to see the trend line climb to 100.
+7. **Simulate → Reset agent to v1** to start over.
 
 ---
 
@@ -144,13 +166,14 @@ See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full design. At a g
 
 ```
 index.html            # entry point, loads scripts in dependency order
+serve.py              # no-cache static dev server
 css/styles.css        # dark, dependency-free UI
 js/domain.js          # catalog, policies, customers, the tunable agent config
 js/scenarios.js       # conversation bank with ground-truth expectations
 js/agent.js           # the layered agent simulator (emits traces/spans)
 js/evals.js           # ground-truth scoring → metrics
 js/hotspots.js        # failure clustering + the fix playbook (root cause → remedy)
-js/store.js           # state, simulation orchestration, tagging, history
+js/store.js           # state, simulation, tagging, per-version history + config diffs
 js/charts.js          # SVG gauges, bars, sparklines, flywheel, timelines
 js/views.js           # per-page render functions
 js/app.js             # routing + event wiring
