@@ -36,7 +36,7 @@
   function showScore(r) {
     state.results = r;
     var sc = $('score');
-    sc.textContent = (r.real ? 'Your model: ' : state.model.on ? 'Simulator score: ' : 'Test score: ') + r.pct + '% (' + r.passed + ' of ' + r.total + ')';
+    sc.textContent = (r.real ? 'Your model: ' : state.model.on ? 'Simulator: ' : 'Tests: ') + r.passed + ' of ' + r.total + ' pass';
     sc.className = 'score ' + (r.total && r.passed === r.total ? 'good' : r.pct < 50 ? 'bad' : 'mid');
     if (ABS.embed) ABS.embed.score(r, WS.examples[state.exampleId] ? WS.examples[state.exampleId].name : '');
     updateTestRows();
@@ -144,7 +144,7 @@
         '<td class="nowrap"><button type="button" class="btn small ghost" data-act="trace" data-i="' + i + '">Trace</button> ' +
         '<button type="button" class="btn danger small" data-act="delTest" data-i="' + i + '" aria-label="Delete test ' + (i + 1) + '">x</button></td></tr>';
     }).join('');
-    return panelHead('Test', 'Tests', 'A test sheet is a list of questions with the words a good answer must and must not contain. Run it after every change so you see what each change did. The score updates as you edit.') +
+    return panelHead('Test', 'Tests', 'A test sheet is a list of questions with the words a good answer must and must not contain. Run it after every change so you see what each change did. The count updates as you edit.') +
       '<div class="row"><button type="button" class="btn" data-act="runAll">Run all tests</button>' +
       (state.model.on ? '<button type="button" class="btn warn" data-act="runReal"' + (state.busy ? ' disabled' : '') + '>Run tests with your model</button>' : '') +
       '<span id="scoreLine" class="scoreline"></span></div>' +
@@ -165,8 +165,8 @@
         if (el) { el.textContent = it.pass ? 'Pass' : 'Fail'; el.className = 'pill ' + (it.pass ? 'pass' : 'fail'); }
       });
       var sl = $('scoreLine');
-      if (sl) sl.textContent = (r.real ? 'Your model (' + r.model + '): ' : 'Score: ') + r.pct + '% (' + r.passed + ' of ' + r.total + ' pass)' +
-        (r.real ? '. Edit anything and the score goes back to the simulator.' : '');
+      if (sl) sl.textContent = (r.real ? 'Your model (' + r.model + '): ' : '') + r.passed + ' of ' + r.total + ' tests pass' +
+        (r.real ? '. Edit anything and the count comes from the simulator again.' : '');
       var hl = $('hintList');
       if (hl) {
         var fails = r.items.map(function (it, i) { return { it: it, i: i }; }).filter(function (x) { return !x.it.pass; });
@@ -344,8 +344,8 @@
     if (!show) return;
     el.innerHTML = '<h2>Start here</h2><ol>' +
       '<li><b>Ask something.</b> Click an example question in the chat on the right and read the reply, the folder the model was handed, and the trace.</li>' +
-      '<li><b>Break it.</b> Click "Load broken version", then open tab 5 Test. The score drops because some parts are set up badly.</li>' +
-      '<li><b>Fix one part at a time.</b> Use the Hints list on tab 5, change one setting, and watch the score. Repeat until it reaches 100%.</li></ol>' +
+      '<li><b>Break it.</b> Click "Load broken version", then open tab 5 Test. Fewer tests pass because some parts are set up badly.</li>' +
+      '<li><b>Fix one part at a time.</b> Use the Hints list on tab 5, change one setting, and watch how many tests pass. Repeat until all of them do.</li></ol>' +
       '<button type="button" class="btn small" data-act="hideStart">Got it</button>';
   }
 

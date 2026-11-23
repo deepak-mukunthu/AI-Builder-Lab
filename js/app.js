@@ -59,15 +59,15 @@
       </div>`}`;
   }
 
-  // On the Sandbox screen the footer shows the Sandbox's own test score. It
-  // is a pass rate on its own tests, not comparable with ShopBot's quality.
+  // On the Sandbox screen the footer shows how many of the Sandbox's own tests
+  // pass. It is a count, not a score out of 100, so it can't be read as
+  // ShopBot's quality.
   function sandboxFoot() {
     const sc = sandboxScore;
     const col = !sc ? "var(--muted)" : global.Charts.scoreColor(sc.total ? sc.passed / sc.total : 0);
     return `<div class="sidebar-foot">
         Sandbox example<br><span class="ver-badge">${sc && sc.example ? global.Charts.esc(sc.example) : "-"}</span>
-        <div style="margin-top:10px">${sc && sc.real ? "Your model" : "Test score"}<br><b class="mono" style="font-size:18px;color:${col}">${sc ? sc.pct + "%" : "-"}</b></div>
-        <div style="margin-top:10px">${sc ? `${sc.passed} of ${sc.total} tests pass` : "Waiting for the Sandbox"}</div>
+        <div style="margin-top:10px">${sc && sc.real ? "Your model" : "Tests"}<br><b class="mono" style="font-size:18px;color:${col}">${sc ? `${sc.passed} of ${sc.total}` : "-"}</b> ${sc ? "pass" : ""}</div>
         <div style="margin-top:10px">Separate from ShopBot's quality score.</div>
       </div>`;
   }

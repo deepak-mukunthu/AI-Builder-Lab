@@ -36,12 +36,12 @@ The chat panel on the right is always visible. For every answer it shows **what 
 
 Five short, made-up HR policies (leave, expenses, remote work, equipment, travel) and eight test questions.
 
-1. (2 min) Pick **Help desk (HR policies)** and click **Load working version**. On tab 5, the score is 100%. Ask "How often are laptops replaced?" in the chat. Open the inspector and read the folder and the trace.
-2. (2 min) Click **Load broken version**. The score drops to **25%** (2 of 8). Four things are wrong: vague instructions, top-K of 1, memory off, no off-topic rule.
-3. (4 min) **Instructions.** Open the Hints list on tab 5. Several tests point at tab 1. Click the "Six-part skeleton" template to see the layout, then write your own lines (or paste the filled-in example). You need a "cite" instruction and a contact email on the "When unsure" line. Expected score: **62.5%**.
-4. (4 min) **Knowledge.** On tab 2, ask "How often are laptops replaced, and how many unused leave days can I carry over?" and look at the retrieved chunks. Only one chunk is retrieved, so one fact is missing. Raise top-K to 3. Expected score: **75%**.
-5. (3 min) **Memory.** Tab 3 has the notes `name: Priya` and `prefers email`, but memory is off. Switch it on and ask "Can I carry over unused leave?". Expected score: **87.5%**.
-6. (3 min) **Rules.** On tab 4, switch on "Refuse off-topic questions". Ask for a poem. The guardrail answers before the model is called. Expected score: **100%**.
+1. (2 min) Pick **Help desk (HR policies)** and click **Load working version**. On tab 5, all 8 tests pass. Ask "How often are laptops replaced?" in the chat. Open the inspector and read the folder and the trace.
+2. (2 min) Click **Load broken version**. Only **2 of 8** tests pass. Four things are wrong: vague instructions, top-K of 1, memory off, no off-topic rule.
+3. (4 min) **Instructions.** Open the Hints list on tab 5. Several tests point at tab 1. Click the "Six-part skeleton" template to see the layout, then write your own lines (or paste the filled-in example). You need a "cite" instruction and a contact email on the "When unsure" line. Expected: **5 of 8**.
+4. (4 min) **Knowledge.** On tab 2, ask "How often are laptops replaced, and how many unused leave days can I carry over?" and look at the retrieved chunks. Only one chunk is retrieved, so one fact is missing. Raise top-K to 3. Expected: **6 of 8**.
+5. (3 min) **Memory.** Tab 3 has the notes `name: Priya` and `prefers email`, but memory is off. Switch it on and ask "Can I carry over unused leave?". Expected: **7 of 8**.
+6. (3 min) **Rules.** On tab 4, switch on "Refuse off-topic questions". Ask for a poem. The guardrail answers before the model is called. Expected: **8 of 8**.
 7. (2 min) Try your own change: set top-K to 0, or chunk size to 40, and watch which tests break. Add a test of your own on tab 5.
 
 ## 20-minute guided exercise: ShopBot mini
@@ -58,13 +58,13 @@ The same store as the lab's ShopBot screens: the same eight products, the same f
 Catalog: Aurora Wireless Headphones $199, Nimbus Bluetooth Speaker $89 (out of stock), Flux Smartwatch $149, Pulse Earbuds $79, Zenith Laptop Stand $59, Orbit Wireless Charger $39, Volt Power Bank 20k $69, Echo Studio Mic $129 (out of stock).
 
 1. (2 min) Load the working version and try: "Is the Echo Studio Mic in stock?", "Refund ORD-9003", "Refund ORD-9004". Read the Harness step in each trace.
-2. (2 min) Click **Load broken version**. The score is **30%** (3 of 10). Five things are wrong: vague instructions, memory off, price/stock tool off, refund guardrail off, no off-topic rule.
+2. (2 min) Click **Load broken version**. **3 of 10** tests pass. Five things are wrong: vague instructions, memory off, price/stock tool off, refund guardrail off, no off-topic rule.
 3. (3 min) Ask "Refund ORD-9004 please." The broken bot approves a $400 refund. Nothing in the model checks the limit. That is why the limit belongs in code.
-4. (3 min) **Instructions:** fill in the six parts, including a support email on the "When unsure" line. Expected: **40%**.
-5. (2 min) **Memory:** switch it on. "Please refund my last order" now finds ORD-9001 in the notes instead of asking for an id. Expected: **50%**.
-6. (3 min) **Tools:** switch on the price/stock lookup. Expected: **70%**.
-7. (2 min) **Guardrail:** switch on "Enforce refund rules in code". The 45-day order is refused and the $400 order goes to a human. Expected: **90%**.
-8. (2 min) **Scope:** switch on the off-topic refusal. Expected: **100%**.
+4. (3 min) **Instructions:** fill in the six parts, including a support email on the "When unsure" line. Expected: **4 of 10**.
+5. (2 min) **Memory:** switch it on. "Please refund my last order" now finds ORD-9001 in the notes instead of asking for an id. Expected: **5 of 10**.
+6. (3 min) **Tools:** switch on the price/stock lookup. Expected: **7 of 10**.
+7. (2 min) **Guardrail:** switch on "Enforce refund rules in code". The 45-day order is refused and the $400 order goes to a human. Expected: **9 of 10**.
+8. (2 min) **Scope:** switch on the off-topic refusal. Expected: **10 of 10**.
 9. (1 min) Change the refund limit to 500 and turn off "Require human approval". Re-run the refund tests and read the traces.
 
 ## How the simulator works
