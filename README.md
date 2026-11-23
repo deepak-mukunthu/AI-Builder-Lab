@@ -1,72 +1,44 @@
-# 🎡 Data Flywheel — Agent Performance Lab
+# AI Builder Lab
 
-> A self-contained, **zero-setup** visual lab for learning how the *data flywheel*
-> turns raw agent telemetry into compounding quality improvements:
-> **Simulate → Trace → Tag & Detect → Fix → re-simulate**, with quality climbing on every turn.
+The companion lab for the book *Learn AI by Building*. It is one web page with two parts:
 
-No build step. No dependencies. No API keys. Just open `index.html` in a browser.
+- **The ShopBot investigation.** A customer-service agent that ships with bugs planted in the parts around its model. You run it, read its traces, find what broke, and fix it one part at a time, from v1 (76/100) to v8 (100/100). Chapters 2 to 9 of the book follow this.
+- **The Sandbox.** Build your own small assistant from the same five parts, using forms, and test it. It has two examples, ShopBot mini and an HR help desk, each with a working and a broken version. Start Here and the "Try it in the Sandbox" boxes in the book use this.
 
----
+No install, no build step, no account and no API key. Everything runs in your browser and nothing is sent anywhere. The one exception is the Sandbox's optional [Use your own model](sandbox/README.md#use-your-own-model-advanced) mode, which sends questions to a provider you choose, only while it is switched on.
 
-## Why this exists
+## Open it
 
-Everyone says "improve your agent with data," but it's rarely shown *concretely*.
-This lab makes the whole loop tangible with a working customer-service agent that ships
-**deliberately broken**, six defects seeded across the agent stack. You use the app to:
+1. Download the lab. On GitHub, click **Releases**, open **book-edition-1**, and download **Source code (zip)**. Or clone it:
 
-1. **Simulate** realistic traffic and capture rich, multi-layer traces.
-2. **Read the traces like a human reviewer** — the exact context window, model params,
-   memory recall, tool calls, and guardrail decisions.
-3. **Form a hypothesis** about which layer is at fault and tag it.
-4. **Detect hotspots automatically** — failures clustered and ranked by impact.
-5. **Apply a one-click fix** at the responsible layer and watch the metrics move.
+   ```bash
+   git clone https://github.com/deepak-mukunthu/AI-Builder-Lab.git
+   ```
 
-Applying all recommended fixes takes the agent from **~76 → 100** quality across eight versions.
+2. Unzip it and double-click `index.html`. It works straight from the file.
 
----
+The page opens on the **Home** screen with a v1 run already done. The menu on the left has all nine screens. **Sandbox** is the last one.
 
-## Quick start
+If you prefer a local web server, run `python3 serve.py` in the folder and open http://localhost:8777. You need this only for the Sandbox's "Use your own model" mode with a local model such as Ollama, which refuses pages opened from a file.
 
-```bash
-git clone https://github.com/deepak-mukunthu/data-flywheel-agent-lab.git
-cd data-flywheel-agent-lab
-
-# Option A — just open it
-open index.html            # macOS  (or double-click the file)
-
-# Option B — serve it (recommended; avoids file:// quirks)
-python3 serve.py           # no-cache dev server on http://localhost:8777
-# (or: python3 -m http.server 8777)
-```
-
-`serve.py` sends no-cache headers, so a normal browser refresh always loads the latest
-assets. The app auto-runs one simulation on load, so it opens with data ready to explore.
-
----
-
-## The agent: "ShopBot"
+## The agent: ShopBot
 
 A customer-service agent for a small electronics store. It handles:
 
-- **Product info** — "Tell me about the Flux Smartwatch."
-- **Availability** — "Is the Nimbus Speaker in stock?"
-- **Pricing** — "How much is the Volt Power Bank?"
-- **Orders** — "Can I buy the Pulse Earbuds?"
-- **Refunds** — "Refund my order ORD-9004 please." (respecting a 30-day window and a $150 auto-approve cap)
-- **Out-of-scope** — "What's the weather in Paris?" (should decline)
+- **Product info.** "Tell me about the Flux Smartwatch."
+- **Availability.** "Is the Nimbus Speaker in stock?"
+- **Pricing.** "How much is the Volt Power Bank?"
+- **Orders.** "Can I buy the Pulse Earbuds?"
+- **Refunds.** "Refund my order ORD-9004 please." It must respect a 30-day window and a $150 auto-approve cap.
+- **Out of scope.** "What's the weather in Paris?" It should decline.
 
-Under the hood it's a **deterministic simulator**: a given (scenario, config) pair always
-produces the same trace. That's what makes before/after comparisons honest — fixing a layer
-removes exactly the failures that layer caused, and the score moves for a reason you can point at.
+Under the hood it is a **deterministic simulator**. A given scenario and config always produce the same trace. That keeps before-and-after comparisons honest: fixing a part removes exactly the failures that part caused, and the score moves for a reason you can point at.
 
----
+## The five parts, and the bug planted in each
 
-## The five agent layers (and the bug seeded in each)
+Every trace is split into spans from five layers. Each layer has its own settings, and each planted defect is fixed by changing exactly one layer:
 
-Every trace is decomposed into spans from five layers. Each layer has tunable config, and
-each seeded defect is fixed by mutating exactly one layer:
-
-| Layer | Responsibility | Seeded v1 defect | The fix |
+| Layer | Responsibility | Planted v1 defect | The fix |
 |-------|---------------|------------------|---------|
 | 🔵 **Model** | intent + generation | `temperature 0.9` → hallucinated prices | lower to `0.2` |
 | 🟢 **Context** | assembles the prompt window | `catalogTopK=3` truncates the catalog; prompt v1 has no scope guardrail; refund policy not injected | raise topK, upgrade prompt, inject policy |
@@ -74,124 +46,96 @@ each seeded defect is fixed by mutating exactly one layer:
 | 🔴 **Harness** | orchestration & guardrails | no refund guardrail; no tool-arg validation | enable guardrail + validation |
 | 🟣 **Tools** | pricing / inventory / orders / refunds | pricing reads a **stale cache** | switch to live source |
 
----
-
-## The flywheel, screen by screen
+## Screen by screen
 
 | Screen | What it's for |
 |--------|---------------|
-| **◎ Flywheel** | The loop diagram, quality-over-iterations trend, and the improvement log. |
-| **💬 Chat with Agent** | Talk to ShopBot live; the right pane shows the full trace of your last turn. |
-| **🧪 Simulate** | Run the scenario bank (1× / 3× / 5× for volume) to generate a batch of traces. |
-| **📊 Metrics & Evals** | Objective, ground-truth scoring + operational metrics + a blended Quality Score. |
-| **🔬 Traces & Tagging** | The human-review workbench: expected-vs-actual, step-by-step execution log with raw payloads, hypothesis tagging, and reveal-root-cause. |
-| **🎯 Hotspots & Fixes** | Clustered failures ranked by impact, a layer heat-map, and one-click layered fixes. |
-| **🧬 Version History** | The audit trail: a metrics matrix across all versions, per-layer config diffs, and the concrete before/after scenarios each version fixed. |
-| **⚙ Agent Config** | The full harness state across all five layers; values changed by fixes are flagged. |
-
----
+| **◎ Home** | The loop diagram, the quality trend across versions, and the improvement log. |
+| **💬 Chat with Agent** | Talk to ShopBot. The right pane shows the full trace of your last turn. |
+| **🧪 Simulate** | Run the 15 scenarios once, 3 times or 5 times to generate a batch of traces. |
+| **📊 Metrics & Evals** | Scoring against each scenario's expected outcome, operational metrics, and a blended Quality Score. |
+| **🔬 Traces & Tagging** | The review bench: expected vs actual, the step-by-step execution log with raw payloads, hypothesis tagging, and reveal root cause. |
+| **🎯 Hotspots & Fixes** | Failures grouped and ranked by impact, a layer heat map, and one-click fixes. |
+| **🧬 Version History** | The audit trail: a metrics table across all versions, per-layer config changes, and the scenarios each version fixed. |
+| **⚙ Agent Config** | All five layers' settings. Values changed by fixes are flagged. |
+| **🧰 Sandbox** | Build and test your own assistant. See [sandbox/README.md](sandbox/README.md). |
 
 ## The metrics
 
-**Quality evals** (objective, grounded in each scenario's expected outcome):
+**Quality evals**, each checked against the scenario's expected outcome:
 
-- **Intent Accuracy** — classified the request type correctly
-- **Task Success** — accomplished what the customer wanted
-- **Grounding** — prices/stock came from tools, not hallucinated
-- **Policy Safety** — refunds respected the window and auto-approve cap
-- **Scope Adherence** — stayed within store topics
-- **No Redundant Asks** — didn't re-ask info memory should recall
+- **Intent Accuracy.** Classified the request type correctly.
+- **Task Success.** Did what the customer wanted.
+- **Grounding.** Prices and stock came from tools, not made up.
+- **Policy Safety.** Refunds respected the window and the auto-approve cap.
+- **Scope Adherence.** Stayed within store topics.
+- **No Redundant Asks.** Didn't re-ask for information memory should recall.
 
-**Operational metrics:** p50 / p95 latency, tokens per trace, tool-error rate, containment.
+**Operational metrics:** p50 and p95 latency, tokens per trace, tool-error rate, containment.
 
-**Quality Score** — a blended 0–100 weighted toward correctness and safety.
+**Quality Score:** a blended 0 to 100, weighted toward correctness and safety.
 
----
+## Traces & Tagging
 
-## The human-review workbench (Traces & Tagging)
+For any trace you get:
 
-This is the heart of the "understand your agent" experience. For any trace you get:
+1. **Expected vs actual.** What the customer asked, the expected outcome, and what the agent answered, so you see *that* something is wrong before *why*.
+2. **Step-by-step execution log.** Every span the harness ran, in order. Each one opens to its **raw payload**: the exact context window, model name and temperature, memory hit or miss, tool arguments, results and data source, and guardrail decisions. Suspicious values are flagged (⚠ high temperature, ⚠ stale cache, ⚠ memory disabled).
+3. **Hypothesis tagging.** Pick the layer you suspect and write down why.
+4. **Reveal root cause.** The detected issues stay hidden until you commit a guess. Then the app tells you whether your layer matches what the detector found.
 
-1. **Expected vs Actual** — what the customer asked, the ground-truth expectation, and what
-   the agent actually answered — so you see *that* something is wrong before *why*.
-2. **Step-by-step execution log** — every span the harness ran, in order, each expandable to
-   its **raw payload**: the exact context window text, model name/temperature/tokens, memory
-   recall hit/miss, tool arguments & results & data source, and guardrail decisions.
-   Suspicious values are flagged (⚠ high temperature, ⚠ stale cache, ⚠ memory disabled).
-3. **Hypothesis tagging** — pick the layer you suspect and record your reasoning.
-4. **Reveal root cause** — the detected issues stay hidden until you commit a hypothesis,
-   then the app scores your guess (✓ matched / ✗ different layer) against what the automated
-   detector found.
+Manual review builds intuition first. Automated detection then scales it.
 
-This mirrors the real workflow: manual review builds intuition, then automated detection scales it.
+## Version History
 
----
+Every fix creates a new agent version. The **🧬 Version History** page records what changed and what it bought:
 
-## The audit trail (Version History)
+1. **Metrics table.** Every metric as a row and every version as a column, with color-coded changes.
+2. **Per-layer config changes.** For each version, which setting changed at which layer, shown as `from → to` with a one-line explanation. One fix can touch more than one layer. The refund fix, for example, flips both `context.includePolicy` and `harness.refundGuardrail`.
+3. **Scenarios fixed.** The conversations that flipped from fail to pass, each with a before-and-after answer. Regressions are flagged. A fix that doesn't flip a scenario on a single run is labeled *preventive hardening*.
 
-Every fix produces a new agent version, and the **🧬 Version History** page is the record of
-what changed and what it bought:
-
-1. **Metrics matrix** — every metric (quality, task success, grounding, policy safety, scope,
-   no-re-ask, containment, tool errors, p95, tokens) as a row, one column per version, with
-   color-coded per-step deltas.
-2. **Per-layer config diffs** — for each version, exactly which knob changed at which layer
-   (model / context / memory / harness / tools), shown as `from → to` in plain English with a
-   one-line explanation. A single fix can touch more than one layer (e.g. the refund fix flips
-   both `context.includePolicy` and `harness.refundGuardrail`).
-3. **Scenarios fixed** — the concrete payoff: the actual conversations that flipped
-   **fail → pass**, each with a before/after answer. Regressions (pass → fail) are flagged, and
-   intermittent fixes that don't happen to flip a scenario on a single run are labeled
-   *preventive hardening* rather than pretending to be no-ops.
-
----
-
-## Suggested demo walkthrough
+## Suggested walkthrough
 
 See **[docs/DEMO.md](docs/DEMO.md)** for a full guided tour. The short version:
 
-1. Open the app → lands on **Flywheel** with a v1 run already done (~76/100).
-2. **Metrics** → note low task success and grounding.
-3. **Traces** → click a red-scored row, expand the context window, form a hypothesis, reveal the root cause.
-4. **Hotspots** → apply the top-ranked fix; watch the toast report the quality delta.
-5. **Version History** → see the config diff and the exact scenarios that fix repaired (before/after).
-6. Repeat the fixes → return to **Flywheel** to see the trend line climb to 100.
+1. Open the app. It lands on **Home** with a v1 run already done (76/100).
+2. **Metrics.** Note the low task success and grounding.
+3. **Traces.** Click a red-scored row, open the context window, form a hypothesis, and reveal the root cause.
+4. **Hotspots.** Apply the top-ranked fix and read the quality change.
+5. **Version History.** See the config change and the scenarios that fix repaired.
+6. Repeat the fixes, then return to **Home** to see the trend line climb to 100.
 7. **Simulate → Reset agent to v1** to start over.
 
----
+## Files
 
-## Architecture
-
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full design. At a glance:
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the design of the ShopBot investigation.
 
 ```
-index.html            # entry point, loads scripts in dependency order
-serve.py              # no-cache static dev server
-css/styles.css        # dark, dependency-free UI
-js/domain.js          # catalog, policies, customers, the tunable agent config
-js/scenarios.js       # conversation bank with ground-truth expectations
-js/agent.js           # the layered agent simulator (emits traces/spans)
-js/evals.js           # ground-truth scoring → metrics
-js/hotspots.js        # failure clustering + the fix playbook (root cause → remedy)
-js/store.js           # state, simulation, tagging, per-version history + config diffs
-js/charts.js          # SVG gauges, bars, sparklines, flywheel, timelines
-js/views.js           # per-page render functions
-js/app.js             # routing + event wiring
+index.html            entry point, loads scripts in dependency order
+serve.py              optional no-cache local server
+css/styles.css        dark, dependency-free UI
+js/domain.js          catalog, policies, customers, the tunable agent config
+js/scenarios.js       the 15 scenarios with expected outcomes
+js/agent.js           the layered agent simulator (emits traces and spans)
+js/evals.js           scoring against expected outcomes → metrics
+js/hotspots.js        failure grouping + the fix playbook (root cause → remedy)
+js/store.js           state, simulation, tagging, version history and config changes
+js/charts.js          SVG gauges, bars, sparklines, the loop ring, timelines
+js/views.js           per-page render functions
+js/app.js             routing and event wiring
+sandbox/              the Sandbox, a separate page shown in the Sandbox screen
+sandbox/tests/run.js  Node checks for the Sandbox: node sandbox/tests/run.js
 ```
 
-Everything is vanilla JavaScript with zero runtime dependencies. Charts are hand-rolled SVG.
-
----
+Everything is plain JavaScript with no runtime dependencies. Charts are hand-drawn SVG.
 
 ## Extending it
 
-- **Add a scenario:** append to `SCENARIOS` in `js/scenarios.js` with an `expect` block; evals pick it up automatically.
-- **Add a product / customer / policy:** edit `js/domain.js`.
-- **Add a failure mode + fix:** add an issue code in `js/agent.js` and a matching entry in the `PLAYBOOK` in `js/hotspots.js`.
-- **Tune a layer:** every knob lives in `defaultConfig()` in `js/domain.js`.
-
----
+- **Add a scenario:** append to `SCENARIOS` in `js/scenarios.js` with an `expect` block. The evals pick it up.
+- **Add a product, customer or policy:** edit `js/domain.js`.
+- **Add a failure mode and its fix:** add an issue code in `js/agent.js` and a matching entry in the `PLAYBOOK` in `js/hotspots.js`.
+- **Tune a layer:** every setting lives in `defaultConfig()` in `js/domain.js`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

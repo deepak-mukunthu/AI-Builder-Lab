@@ -1,4 +1,4 @@
-/* ============================ Data Flywheel — styles ============================ */
+/* ============================ AI Builder Lab: styles ============================ */
 :root {
   --bg: #0b0e17; --panel: #141a29; --panel-2: #1b2336; --border: #2a3350;
   --track: #232c44; --text: #e6ebf5; --muted: #8b96b0; --accent: #7c9cff;
@@ -221,3 +221,8 @@ tr.clickable:hover td { background: var(--panel-2); }
 @keyframes pop { from { opacity: 0; transform: translate(-50%, 12px); } }
 .flash { animation: flash 1s ease; }
 @keyframes flash { 0% { background: rgba(62,207,142,.25); } 100% { background: transparent; } }
+
+/* Sandbox screen: the sandbox app in a frame, filling the page. */
+.sandbox-frame { width: 100%; height: calc(100vh - 140px); min-height: 560px; border: 1px solid var(--border);
+  border-radius: 12px; background: #fff; }
+.page-head p a { color: var(--accent, #7c9cff); }

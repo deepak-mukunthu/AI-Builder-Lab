@@ -1,4 +1,4 @@
-# 🎬 Guided Demo — Turning the Flywheel
+# Guided demo: one turn of the improvement loop
 
 This is a step-by-step walkthrough that takes ShopBot from a broken **v1** to a
 near-perfect agent, so you can *feel* how trace data drives improvement. Budget
@@ -17,7 +17,7 @@ python3 serve.py                 # from the repo root (no-cache dev server)
 `serve.py` sends no-cache headers, so a plain browser refresh always loads the
 latest assets — handy while you're poking around.
 
-You land on the **Flywheel** page. A v1 simulation has already run, so the headline
+You land on the **Home** page. A v1 simulation has already run, so the headline
 Quality Score reads around **76 / 100**. That's our starting point.
 
 ---
@@ -135,9 +135,9 @@ to be no-ops. Any regression (pass → fail) would be flagged in red here too.
 
 ---
 
-## 6. Watch the wheel turn (Flywheel)
+## 6. Watch the score climb (Home)
 
-Return to **◎ Flywheel**. The quality trend line now climbs 76 → 100, and the
+Return to **◎ Home**. The quality trend line now climbs 76 → 100, and the
 **Improvement Log** lists every fix with its layer and quality delta. This is the
 payoff: a visible, auditable record of data-driven improvement.
 
@@ -146,7 +146,7 @@ payoff: a visible, auditable record of data-driven improvement.
 ## 7. Inspect the improved agent (Agent Config)
 
 Go to **⚙ Agent Config**. Every knob changed by a fix is flagged in green with a ✎.
-This is the artifact the flywheel produced — the same config that now scores 100.
+These are the settings the fixes produced, the same config that now scores 100.
 
 ---
 

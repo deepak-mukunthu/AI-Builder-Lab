@@ -97,8 +97,8 @@
       const ax = cx + (R) * Math.cos(ang2), ay = cy + (R) * Math.sin(ang2);
       out += `<text x="${ax}" y="${ay}" text-anchor="middle" class="wheel-arrow">→</text>`;
     });
-    out += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" class="wheel-title">DATA</text>`;
-    out += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" class="wheel-title">FLYWHEEL</text>`;
+    out += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" class="wheel-title">IMPROVE</text>`;
+    out += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" class="wheel-title">LOOP</text>`;
     out += `</svg>`;
     return out;
   }

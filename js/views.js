@@ -78,16 +78,17 @@
 
     return `
     <div class="page-head">
-      <h2>The Data Flywheel</h2>
-      <p>Run the agent → capture layered traces → tag &amp; auto-detect hotspots →
-         fix at the model, context, memory, harness, or tools layer → re-run and watch
-         quality climb. This is the loop that turns raw agent data into compounding improvement.</p>
+      <h2>ShopBot's improvement loop</h2>
+      <p>Run ShopBot, measure it, inspect the failures, and fix the worst one. Each fix
+         changes one of the five parts (model, context, memory, harness, tools). Then run it
+         again and see what the fix bought.</p>
     </div>
 
     <div class="callout">
       <b>How to use this app:</b> Start at <b>Simulate</b> to generate traces, explore them in
       <b>Traces</b> (tag what looks wrong), then open <b>Hotspots</b> to apply one-click fixes and
-      re-simulate. Return here to see the flywheel turn.
+      re-simulate. Return here to see the score climb. To build your own assistant from the
+      same five parts, open <b>Sandbox</b> at the bottom of the menu.
     </div>
 
     <div class="grid cols-2">
@@ -122,7 +123,7 @@
 
     ${state.fixLog.length ? `
     <div class="card" style="margin-top:16px">
-      <h3>Improvement Log — every turn of the wheel</h3>
+      <h3>Improvement log: every fix and what it changed</h3>
       <table><thead><tr><th>Version</th><th>Layer</th><th>Fix Applied</th><th>Quality Δ</th></tr></thead>
       <tbody>${state.fixLog.map((f) => `<tr>
         <td class="mono">${esc(f.version)}</td>
@@ -180,8 +181,8 @@
     return `
     <div class="page-head">
       <h2>Simulate Traffic</h2>
-      <p>Run the full scenario bank through the current agent to generate a batch of traces —
-         the raw material of the flywheel. Increase volume to see how metrics stabilize.</p>
+      <p>Run the full scenario bank through the current agent to generate a batch of traces,
+         the raw material for finding failures. Increase volume to see how metrics stabilize.</p>
     </div>
     <div class="card">
       <div class="row">
@@ -362,7 +363,7 @@
     let body = "";
     if (s.name === "window.assemble" && p.blocks) {
       body += `<div class="muted" style="font-size:11px;margin-bottom:6px">`+
-        `${p.tokens} tokens · catalog topK=${p.catalogTopK} · system prompt v${p.promptVersion}. `+
+        `${Number.isFinite(p.tokens) ? p.tokens + " tokens · " : ""}catalog topK=${p.catalogTopK} · system prompt v${p.promptVersion}. `+
         `This is the EXACT text the model saw — if a product or policy is missing here, the model can't use it.</div>`;
       for (const b of p.blocks)
         body += `<div class="ctx-block"><div class="role">${esc(b.role)}</div><pre>${esc(b.text)}</pre></div>`;
@@ -469,7 +470,7 @@
     // ---- Hypothesis tagging ----
     html += `<div class="divider"></div>`;
     html += `<h3>Your hypothesis — which layer is at fault?</h3>`;
-    html += `<div class="sub">Based on the execution log above, tag the layer you think caused the problem and why. This is exactly the human-in-the-loop judgment the flywheel captures.</div>`;
+    html += `<div class="sub">Based on the execution log above, tag the layer you think caused the problem and why. This is the human judgment the improvement loop depends on.</div>`;
     html += `<div class="row" id="layerPick" style="gap:6px;margin:8px 0">`;
     for (const L of H.LAYER_ORDER)
       html += `<button class="btn ghost sm layer-pick" data-layer="${L}"
@@ -572,7 +573,7 @@
         </div>
       </div>
     `).join("") : `<div class="card"><div class="empty"><div class="big">🎉</div>
-      No hotspots detected — the agent is passing all evals. The flywheel has done its job.</div></div>`}
+      No hotspots detected. The agent is passing all evals, and every planted problem is fixed.</div></div>`}
 
     ${state.fixLog.length ? `<div class="card"><h3>Fixes applied</h3>
       <table><thead><tr><th>Version</th><th>Layer</th><th>Fix</th><th>Quality Δ</th></tr></thead><tbody>
@@ -728,7 +729,7 @@
       <h2>Version History — what changed, layer by layer</h2>
       <p>Every iteration of the agent, with the exact configuration change at each layer
          (model, context, memory, harness, tools) and how the metrics responded. This is the
-         audit trail of the flywheel: which knob moved, why, and what it bought.</p>
+         audit trail of the improvement loop: which setting moved, why, and what it bought.</p>
     </div>
     ${matrix}
     <div style="margin-top:16px">${cards}</div>`;
@@ -749,7 +750,7 @@
     <div class="page-head">
       <h2>Agent Configuration <span class="ver-badge">${esc(c.version)}</span></h2>
       <p>The full harness state across all five layers. Green ✎ values were changed by fixes
-         from the original v1. This is the artifact the flywheel improves.</p>
+         from the original v1. These are the settings the fixes change.</p>
     </div>
     <div class="grid cols-2">
       ${["model","context","memory","harness","tools"].map((L)=>`
@@ -762,5 +763,17 @@
     </div>`;
   }
 
-  global.Views = { overview, chat, simulate, metrics, traces, traceDetail, hotspots, versions, config, traceTable };
+  // The Sandbox: build your own assistant from the same five parts. It is a
+  // separate app in sandbox/, shown in a frame so it keeps its own state.
+  function sandbox() {
+    return `
+    <div class="page-head"><h2>Sandbox</h2>
+      <p>Build your own assistant from the same five parts and test it. It has its own small
+      ShopBot, ShopBot mini, with 10 tests. Nothing here changes the agent version or the
+      15 scenarios on the other screens. <a href="sandbox/index.html" target="_blank">Open it in its own tab</a>.</p>
+    </div>
+    <iframe class="sandbox-frame" src="sandbox/index.html" title="Sandbox"></iframe>`;
+  }
+
+  global.Views = { sandbox, overview, chat, simulate, metrics, traces, traceDetail, hotspots, versions, config, traceTable };
 })(window);

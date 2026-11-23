@@ -7,7 +7,7 @@
   const S = global.Store, V = global.Views;
 
   const ROUTES = [
-    { id: "overview", label: "Flywheel", icon: "◎" },
+    { id: "overview", label: "Home", icon: "◎" },
     { id: "chat", label: "Chat with Agent", icon: "💬" },
     { id: "simulate", label: "Simulate", icon: "🧪", step: 1 },
     { id: "metrics", label: "Metrics & Evals", icon: "📊", step: 2 },
@@ -15,6 +15,7 @@
     { id: "hotspots", label: "Hotspots & Fixes", icon: "🎯", step: 4 },
     { id: "versions", label: "Version History", icon: "🧬" },
     { id: "config", label: "Agent Config", icon: "⚙" },
+    { id: "sandbox", label: "Sandbox", icon: "🧰" },
   ];
 
   let current = "overview";
@@ -39,7 +40,7 @@
     return `
       <div class="brand">
         <svg class="brand-logo" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#7c9cff" stroke-width="3" stroke-dasharray="6 5"/><circle cx="20" cy="20" r="6" fill="#57c8b8"/></svg>
-        <div><h1>Data Flywheel</h1><small>Agent performance lab</small></div>
+        <div><h1>AI Builder Lab</h1><small>Learn AI by Building</small></div>
       </div>
       <div class="nav">${nav}</div>
       <div class="sidebar-foot">
@@ -60,6 +61,7 @@
       case "hotspots": return V.hotspots(state);
       case "versions": return V.versions(state);
       case "config": return V.config(state);
+      case "sandbox": return V.sandbox();
       default: return V.overview(state);
     }
   }
