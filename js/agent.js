@@ -23,7 +23,7 @@
     return () => { h += 0x6D2B79F5; let t = Math.imul(h ^ (h >>> 15), 1 | h);
       t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
-  const approx = (n) => Math.round(n / 4); // ~chars→tokens
+  const approx = (text) => Math.round(String(text).length / 4); // ~4 chars per token
 
   // Match a product mentioned in the user text (naive, like a retriever).
   function findProduct(text) {
@@ -84,7 +84,7 @@
       if (!ok) issues.push({ layer: "memory", code: "recall_miss",
         detail: "Profile recall missed; agent will ask for info it should know." });
     } else {
-      span("memory", "profile.recall", { enabled: false, note: "memory disabled — no recall" });
+      span("memory", "profile.recall", { enabled: false, note: "memory disabled, no recall" });
     }
 
     // ---------------- CONTEXT: assemble the window -------------------
@@ -151,13 +151,13 @@
 
     if (intent === "out_of_scope") {
       if (config.context.systemPromptVersion >= 2) {
-        answer = "I'm sorry, I can't help with that — I can only assist with our store's " +
+        answer = "I'm sorry, I can't help with that. I can only assist with our store's " +
           "products, availability, pricing, orders, and refunds.";
       } else {
         // v1 prompt has no guardrail → the model wanders off-scope.
         answer = "Sure! It looks pleasant and mild today. Anyway, back to shopping?";
         issues.push({ layer: "context", code: "scope_leak",
-          detail: "No scope guardrail in system prompt v1 — agent answered off-topic." });
+          detail: "No scope guardrail in system prompt v1, so the agent answered off-topic." });
       }
     } else if (intent !== "refund" && !visibleProduct) {
       // Either no product matched at all, or it was truncated out of context.
@@ -191,7 +191,7 @@
         source: config.tools.inventorySource, stock: product.stock, error: false }));
       facts.stock = t.result;
       if (product.stock === 0) answer = `The ${product.name} is currently out of stock.`;
-      else if (product.stock <= 5) answer = `Yes — only ${product.stock} of the ${product.name} left, order soon!`;
+      else if (product.stock <= 5) answer = `Yes, but only ${product.stock} of the ${product.name} left, order soon!`;
       else answer = `Yes, the ${product.name} is in stock (${product.stock} available).`;
     } else if (intent === "product_info") {
       facts.described = product.sku;
@@ -224,7 +224,7 @@
           answer = `Order ${order.id} is outside our ${POLICY.refundWindowDays}-day refund window, so I can't refund it automatically.`;
           facts.refundGranted = false;
         } else if (!underCap) {
-          answer = `Order ${order.id} is ${fmt$(order.price)}, above the auto-refund cap — I've routed it for human approval.`;
+          answer = `Order ${order.id} is ${fmt$(order.price)}, above the auto-refund cap, so I've routed it for human approval.`;
           facts.refundGranted = false;
         } else {
           toolCall("issue_refund", { order: order.id, amount: order.price }, () => ({
@@ -261,8 +261,10 @@
     span("harness", "session.end", { spans: spans.length });
 
     const totalMs = spans.reduce((a, s) => a + s.ms, 0);
+    // Prompt tokens (the assembled window) plus the reply. window.assemble
+    // reports the same prompt count, so it isn't added twice.
     const totalTokens = spans.reduce((a, s) =>
-      a + (s.payload.tokens || s.payload.promptTokens || s.payload.completionTokens || 0), 0);
+      a + (s.payload.promptTokens || s.payload.completionTokens || 0), 0);
 
     return {
       traceId: scenario.id + "-" + config.version + (opts.salt ? "-" + opts.salt : ""),
