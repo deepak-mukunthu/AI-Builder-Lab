@@ -80,7 +80,7 @@
   function flywheel(activeStage) {
     const stages = ["Simulate", "Trace", "Tag & Detect", "Fix"];
     const cx = 130, cy = 130, R = 92;
-    let out = `<svg viewBox="0 0 260 260" class="wheel">`;
+    let out = `<svg viewBox="-12 0 284 276" class="wheel">`;
     out += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--track)" stroke-width="2" stroke-dasharray="4 6"/>`;
     stages.forEach((s, i) => {
       const ang = -Math.PI / 2 + (i / stages.length) * 2 * Math.PI;
