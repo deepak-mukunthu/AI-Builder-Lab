@@ -772,7 +772,7 @@
       ShopBot, ShopBot mini, with 10 tests. Nothing here changes the agent version or the
       15 scenarios on the other screens. <a href="sandbox/index.html" target="_blank">Open it in its own tab</a>.</p>
     </div>
-    <iframe class="sandbox-frame" src="sandbox/index.html" title="Sandbox"></iframe>`;
+    <iframe class="sandbox-frame" src="sandbox/index.html" title="Sandbox" scrolling="no"></iframe>`;
   }
 
   global.Views = { sandbox, overview, chat, simulate, metrics, traces, traceDetail, hotspots, versions, config, traceTable };

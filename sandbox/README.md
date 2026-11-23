@@ -27,10 +27,10 @@ The model sits in the middle. Four parts surround it, and a fifth checks the res
 | 1 Instructions | Context | The system prompt (role, audience, allowed and forbidden topics, tone, what to do when unsure) | Sets scope, citation style and the hand-off when the assistant does not know |
 | 2 Knowledge | Context | Documents, chunk size, top-K | Decides which facts reach the model for each question |
 | 3 Memory | Memory | On/off, notes about the current user, Forget | Lets the assistant use what it already knows instead of asking again |
-| 4 Tools & Rules | Tools and Guardrails | Order and price/stock lookups with their data, refund window, refund limit, human approval, off-topic refusal | Tools fetch facts. Rules are checked by code outside the model |
+| 4 Tools & Rules | Tools and Harness | Order and price/stock lookups with their data, refund window, refund limit, human approval, off-topic refusal | Tools fetch facts. Rules are checked by code outside the model |
 | 5 Test | Tests | Questions, must-include words, must-not-include words, expected tool | Gives a score so you can see what each change did |
 
-The chat panel on the right is always visible. For every answer it shows **what the model was handed** (system prompt, retrieved chunks, memory notes, tool results, your message) and a **step-by-step trace**, where each step is tagged Context, Memory, Tools, Guardrails or Model. A small strip estimates tokens and cost for the last turn.
+The chat panel on the right is always visible. For every answer it shows **what the model was handed** (system prompt, retrieved chunks, memory notes, tool results, your message) and a **step-by-step trace**, where each step is tagged Context, Memory, Tools, Harness or Model. A small strip estimates tokens and cost for the last turn.
 
 ## 20-minute guided exercise: Help desk (HR policies)
 
@@ -56,7 +56,7 @@ A small shop with three products, three orders, a shipping and a returns documen
 
 Catalog: Echo Studio Mic $129 (out of stock), Pulse Earbuds $79, Volt Power Bank $69.
 
-1. (2 min) Load the working version and try: "Is the Echo Studio Mic in stock?", "Refund ORD-9003", "Refund ORD-9004". Read the Guardrails step in each trace.
+1. (2 min) Load the working version and try: "Is the Echo Studio Mic in stock?", "Refund ORD-9003", "Refund ORD-9004". Read the Harness step in each trace.
 2. (2 min) Click **Load broken version**. The score is **30%** (3 of 10). Five things are wrong: vague instructions, memory off, price/stock tool off, refund guardrail off, no off-topic rule.
 3. (3 min) Ask "Refund ORD-9004 please." The broken bot approves a $400 refund. Nothing in the model checks the limit. That is why the limit belongs in code.
 4. (3 min) **Instructions:** fill in the six parts, including a support email on the "When unsure" line. Expected: **40%**.
@@ -70,7 +70,7 @@ Catalog: Echo Studio Mic $129 (out of stock), Pulse Earbuds $79, Volt Power Bank
 
 For each question, in this order:
 
-1. **Scope check (Guardrails).** With the off-topic rule on, a question that matches a built-in off-topic word (poem, joke, recipe, weather, and similar) or a `Forbidden topics:` line in your instructions gets a fixed refusal. The model is never called. With the rule off, the simulator answers anyway.
+1. **Scope check (Harness).** With the off-topic rule on, a question that matches a built-in off-topic word (poem, joke, recipe, weather, and similar) or a `Forbidden topics:` line in your instructions gets a fixed refusal. The model is never called. With the rule off, the simulator answers anyway.
 2. **Retrieval (Context).** Documents are cut into chunks of whole sentences up to the chunk size. Each chunk is scored by how many of the question's words (filler words dropped, light stemming) it contains. The top-K chunks with enough overlap are added to the folder.
 3. **Memory.** If memory is on, all notes go into the folder. The simulator acts on three kinds: `name: X`, an order id, and "prefers email".
 4. **Tools.** An order id like ORD-1234 calls `order_lookup`. A price, cost or stock question that names a catalog product calls `price_lookup`. A tool that is off is never called.

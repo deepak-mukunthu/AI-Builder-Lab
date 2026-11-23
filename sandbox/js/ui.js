@@ -8,7 +8,7 @@
     { n: 1, label: '1 Instructions', part: 'Context' },
     { n: 2, label: '2 Knowledge', part: 'Context' },
     { n: 3, label: '3 Memory', part: 'Memory' },
-    { n: 4, label: '4 Tools & Rules', part: 'Tools + Guardrails' },
+    { n: 4, label: '4 Tools & Rules', part: 'Tools + Harness' },
     { n: 5, label: '5 Test', part: 'Tests' }
   ];
 
@@ -38,6 +38,7 @@
     var sc = $('score');
     sc.textContent = (r.real ? 'Your model: ' : state.model.on ? 'Simulator score: ' : 'Test score: ') + r.pct + '% (' + r.passed + ' of ' + r.total + ')';
     sc.className = 'score ' + (r.total && r.passed === r.total ? 'good' : r.pct < 50 ? 'bad' : 'mid');
+    if (ABS.embed) ABS.embed.score(r, WS.examples[state.exampleId] ? WS.examples[state.exampleId].name : '');
     updateTestRows();
   }
   function changed() { persist(); recompute(); }
@@ -124,7 +125,7 @@
       '<label class="check"><input type="checkbox" ' + field('ws.tools.prices', 'bool') + '> Price and stock lookup (<code>price_lookup</code>)</label>' +
       '<table class="grid"><thead><tr><th>Product</th><th>Price $</th><th>Stock</th><th></th></tr></thead><tbody>' + cat + '</tbody></table>' +
       '<button type="button" class="btn small" data-act="addProduct">Add product</button>' +
-      '<h3>Rules ' + partTag('Guardrails') + '</h3>' +
+      '<h3>Rules ' + partTag('Harness') + '</h3>' +
       '<label class="check"><input type="checkbox" ' + field('ws.rules.enforceRefund', 'bool') + '> Enforce refund rules in code (the refund guardrail)</label>' +
       '<div class="row"><label>Refund window (days)<input type="number" min="0" ' + field('ws.rules.refundDays', 'num') + '></label>' +
       '<label>Refund limit ($)<input type="number" min="0" ' + field('ws.rules.refundLimit', 'num') + '></label></div>' +

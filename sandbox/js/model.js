@@ -136,23 +136,23 @@
     if (call.name === 'request_refund' && tools.orders) {
       var r = order();
       step('Tools', 'Your model called request_refund("' + id + '"). The tool reads the order record itself, which counts as an order lookup: ' + (r ? 'found.' : 'no such order.'));
-      if (!r) { step('Guardrails', 'No such order, so there is nothing to refund.'); return JSON.stringify({ decision: 'refused', reason: 'no order with that id' }); }
+      if (!r) { step('Harness', 'No such order, so there is nothing to refund.'); return JSON.stringify({ decision: 'refused', reason: 'no order with that id' }); }
       var days = U.num(r.daysAgo, 0), price = U.num(r.price, 0), win = U.num(rules.refundDays, 30), lim = U.num(rules.refundLimit, 150);
       var res;
       if (!rules.enforceRefund) {
-        step('Guardrails', 'Refund rules are OFF, so the request goes straight through. Nothing checks the ' + win + '-day window or the ' + U.money(lim, 0) + ' limit.');
+        step('Harness', 'Refund rules are OFF, so the request goes straight through. Nothing checks the ' + win + '-day window or the ' + U.money(lim, 0) + ' limit.');
         res = { decision: 'approved', amount: price };
       } else if (days > win) {
-        step('Guardrails', 'Checked window: ' + days + ' days old vs ' + win + ' allowed. Refused in code.');
+        step('Harness', 'Checked window: ' + days + ' days old vs ' + win + ' allowed. Refused in code.');
         res = { decision: 'refused', reason: 'placed ' + days + ' days ago; the refund window is ' + win + ' days' };
       } else if (price > lim && rules.requireApproval) {
-        step('Guardrails', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Sent to a human for approval.');
+        step('Harness', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Sent to a human for approval.');
         res = { decision: 'sent_to_human', reason: U.money(price, 0) + ' is above the ' + U.money(lim, 0) + ' limit; a person must approve it' };
       } else if (price > lim) {
-        step('Guardrails', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Refused in code.');
+        step('Harness', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Refused in code.');
         res = { decision: 'refused', reason: U.money(price, 0) + ' is above the ' + U.money(lim, 0) + ' refund limit' };
       } else {
-        step('Guardrails', 'Checked window (' + days + ' of ' + win + ' days) and limit (' + U.money(price, 0) + ' of ' + U.money(lim, 0) + '). Both pass.');
+        step('Harness', 'Checked window (' + days + ' of ' + win + ' days) and limit (' + U.money(price, 0) + ' of ' + U.money(lim, 0) + '). Both pass.');
         res = { decision: 'approved', amount: price };
       }
       return JSON.stringify(res);
@@ -195,11 +195,11 @@
     step('Context', 'Instructions loaded (' + folder.system.length + ' characters). Your model reads all of it, not just the keywords the simulator looks for.');
     var scope = ABS.sim.scopeCheck(q, dir);
     if (scope.hit && rules.offTopicRefusal) {
-      step('Guardrails', 'Blocked before the model was called: ' + scope.why + '. Off-topic refusal is ON. Nothing was sent.');
+      step('Harness', 'Blocked before the model was called: ' + scope.why + '. Off-topic refusal is ON. Nothing was sent.');
       step('Model', 'Not called. The guardrail replied for it.');
       return Promise.resolve(done('I can only help with ' + (dir.allowed || 'the topics in my instructions') + '.', { blocked: true }));
     }
-    step('Guardrails', scope.hit ? 'Off-topic refusal is OFF, so nothing stops this question (' + scope.why + '). It goes to your model.' : 'Scope check passed.');
+    step('Harness', scope.hit ? 'Off-topic refusal is OFF, so nothing stops this question (' + scope.why + '). It goes to your model.' : 'Scope check passed.');
 
     var ret = R.retrieve(ws.docs, q, (ws.knowledge || {}).chunkSize, (ws.knowledge || {}).topK);
     folder.chunks = ret.picked.map(function (c) { return { label: c.label, text: c.text, score: c.score }; });

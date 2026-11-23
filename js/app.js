@@ -6,6 +6,12 @@
   "use strict";
   const S = global.Store, V = global.Views;
 
+  // Two groups: the guided ShopBot investigation (Chapters 2 to 9) and the
+  // Sandbox, where readers build their own assistant.
+  const GROUPS = [
+    { label: "Investigate ShopBot", sub: "Chapters 2 to 9", first: "overview" },
+    { label: "Build your own", sub: "Try it boxes, Appendix G", first: "sandbox" },
+  ];
   const ROUTES = [
     { id: "overview", label: "Home", icon: "◎" },
     { id: "chat", label: "Chat with Agent", icon: "💬" },
@@ -19,6 +25,7 @@
   ];
 
   let current = "overview";
+  let sandboxScore = null;       // last score the Sandbox frame reported
   let selectedTrace = null;      // for Traces panel
   let pickedLayer = null;        // current hypothesis layer selection
   const chatHistory = [];        // {role, text, trace}
@@ -32,21 +39,36 @@
 
   function renderSidebar() {
     const state = S.State;
-    const nav = ROUTES.map((r) => `
+    const nav = ROUTES.map((r) => {
+      const g = GROUPS.find((x) => x.first === r.id);
+      return (g ? `<div class="nav-group">${g.label}<small>${g.sub}</small></div>` : "") + `
       <button data-route="${r.id}" class="${current===r.id?'active':''}">
         ${r.step ? `<span class="step">${r.step}</span>` : `<span style="width:18px;text-align:center">${r.icon}</span>`}
         ${r.label}
-      </button>`).join("");
+      </button>`; }).join("");
     return `
       <div class="brand">
         <svg class="brand-logo" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#7c9cff" stroke-width="3" stroke-dasharray="6 5"/><circle cx="20" cy="20" r="6" fill="#57c8b8"/></svg>
         <div><h1>AI Builder Lab</h1><small>Learn AI by Building</small></div>
       </div>
       <div class="nav">${nav}</div>
-      <div class="sidebar-foot">
+      ${current === "sandbox" ? sandboxFoot() : `<div class="sidebar-foot">
         Agent version<br><span class="ver-badge">${state.config.version}</span>
         ${state.metrics ? `<div style="margin-top:10px">Quality<br><b class="mono" style="font-size:18px;color:${global.Charts.scoreColor(state.metrics.quality)}">${Math.round(state.metrics.quality*100)}</b>/100</div>`:''}
         <div style="margin-top:10px">${state.traces.length} traces · ${Object.keys(state.tags).length} tagged</div>
+      </div>`}`;
+  }
+
+  // On the Sandbox screen the footer shows the Sandbox's own test score. It
+  // is a pass rate on its own tests, not comparable with ShopBot's quality.
+  function sandboxFoot() {
+    const sc = sandboxScore;
+    const col = !sc ? "var(--muted)" : global.Charts.scoreColor(sc.total ? sc.passed / sc.total : 0);
+    return `<div class="sidebar-foot">
+        Sandbox example<br><span class="ver-badge">${sc && sc.example ? global.Charts.esc(sc.example) : "-"}</span>
+        <div style="margin-top:10px">${sc && sc.real ? "Your model" : "Test score"}<br><b class="mono" style="font-size:18px;color:${col}">${sc ? sc.pct + "%" : "-"}</b></div>
+        <div style="margin-top:10px">${sc ? `${sc.passed} of ${sc.total} tests pass` : "Waiting for the Sandbox"}</div>
+        <div style="margin-top:10px">ShopBot's own score is on the other screens.</div>
       </div>`;
   }
 
@@ -200,6 +222,31 @@
     const el = document.getElementById("chatTrace");
     if (el) el.innerHTML = V.traceDetail(tr, { readOnly: true });
   }
+
+  // Messages from the Sandbox frame (sandbox/js/embed.js): its height, so
+  // the frame grows and the page scrolls, and its score for the footer.
+  function sandboxFrame() { return document.querySelector(".sandbox-frame"); }
+  function sendViewport() {
+    const f = sandboxFrame();
+    if (f && f.contentWindow) f.contentWindow.postMessage(
+      { type: "lab-viewport", top: -f.getBoundingClientRect().top, vh: window.innerHeight }, "*");
+  }
+  window.addEventListener("message", (e) => {
+    const f = sandboxFrame(), d = e.data;
+    if (!f || e.source !== f.contentWindow || !d) return;
+    if (d.type === "sandbox-height") { f.style.height = d.h + "px"; sendViewport(); }
+    if (d.type === "sandbox-score") {
+      sandboxScore = d;
+      // Only the menu: re-rendering the page would reload the frame.
+      if (current === "sandbox") {
+        document.getElementById("sidebar").innerHTML = renderSidebar();
+        document.querySelectorAll("#sidebar [data-route]").forEach((b) =>
+          b.onclick = () => { current = b.dataset.route; if (current!=="traces") selectedTrace=null; render(); });
+      }
+    }
+  });
+  window.addEventListener("scroll", sendViewport, { passive: true });
+  window.addEventListener("resize", sendViewport);
 
   S.subscribe(() => render());
   document.addEventListener("DOMContentLoaded", () => {

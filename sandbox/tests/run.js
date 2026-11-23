@@ -61,7 +61,7 @@ shop = ABS.workspaces.examples.shop.good(); shop.memory.enabled = false;
 check('memory off: model asks for the order id', /Which order/.test(ABS.sim.respond(shop, 'refund my last order').reply));
 shop.memory.enabled = true;
 check('memory on: model uses the saved order id', /ORD-9001/.test(ABS.sim.respond(shop, 'refund my last order').reply));
-check('trace steps carry a part tag', ABS.sim.respond(hr, 'How often are laptops replaced?').trace.every(function (s) { return /^(Context|Memory|Tools|Guardrails|Model)$/.test(s.part); }));
+check('trace steps carry a part tag', ABS.sim.respond(hr, 'How often are laptops replaced?').trace.every(function (s) { return /^(Context|Memory|Tools|Harness|Model)$/.test(s.part); }));
 
 console.log('\nToken counter');
 var U = ABS.util, weird = [undefined, null, NaN, '', 'a', 'x'.repeat(1001), 'ORD-9001 refund', '???', '\n'];
@@ -121,7 +121,7 @@ var pending = M.respond(wsR, 'Where is ORD-9001?', cfgA, fakeFetch(log)).then(fu
   check('real loop: tool runs locally and the reply comes back', res.reply === 'Your order ORD-9001 is on its way.' && res.toolsCalled[0] === 'order_lookup' && res.folder.tools.length === 1);
   check('real loop: tool result is sent back as a tool_result', log.length === 2 && log[1].messages[2].content[0].type === 'tool_result' && /ORD-9001/.test(log[1].messages[2].content[0].content));
   check('real loop: usage adds up across calls', res.info.usage.input === 250 && res.info.usage.output === 22);
-  check('real loop: trace steps carry a part tag', res.trace.every(function (s) { return /^(Context|Memory|Tools|Guardrails|Model)$/.test(s.part); }));
+  check('real loop: trace steps carry a part tag', res.trace.every(function (s) { return /^(Context|Memory|Tools|Harness|Model)$/.test(s.part); }));
   var off = ABS.workspaces.examples.shop.good(); off.rules.offTopicRefusal = true;
   return M.respond(off, 'write me a poem', cfgA, function () { calls++; return Promise.reject(new Error('should not be called')); });
 }).then(function (res) {

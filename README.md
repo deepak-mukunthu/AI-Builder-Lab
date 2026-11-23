@@ -17,7 +17,7 @@ No install, no build step, no account and no API key. Everything runs in your br
 
 2. Unzip it and double-click `index.html`. It works straight from the file.
 
-The page opens on the **Home** screen with a v1 run already done. The menu on the left has all nine screens. **Sandbox** is the last one.
+The page opens on the **Home** screen with a v1 run already done. The menu on the left has all nine screens in two groups. **Investigate ShopBot** holds the eight ShopBot screens that Chapters 2 to 9 use. **Build your own** holds the **Sandbox**, where you build and test a small assistant with forms. On the Sandbox screen, the box at the bottom of the menu shows the Sandbox's test score instead of ShopBot's.
 
 If you prefer a local web server, run `python3 serve.py` in the folder and open http://localhost:8777. You need this only for the Sandbox's "Use your own model" mode with a local model such as Ollama, which refuses pages opened from a file.
 

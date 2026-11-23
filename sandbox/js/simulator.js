@@ -105,16 +105,16 @@
     /* Guardrail: scope. Runs in code, before the model sees anything. */
     var scope = scopeCheck(q, dir);
     if (scope.hit && rules.offTopicRefusal) {
-      step('Guardrails', 'Blocked before the model was called: ' + scope.why + '. Off-topic refusal is ON.');
+      step('Harness', 'Blocked before the model was called: ' + scope.why + '. Off-topic refusal is ON.');
       step('Model', 'Not called. The guardrail replied for it.');
       return done('I can only help with ' + (dir.allowed || 'the topics in my instructions') + '.', { blocked: true });
     }
     if (scope.hit) {
-      step('Guardrails', 'Off-topic refusal is OFF, so nothing stops this question (' + scope.why + ').');
+      step('Harness', 'Off-topic refusal is OFF, so nothing stops this question (' + scope.why + ').');
       step('Model', 'No fact in the folder covers this. With no scope rule, the simulator answers anyway, like a model using general knowledge.');
       return done('Sure, happy to help with that! (The simulator would now answer from general knowledge, not from your documents.)', { offTopic: true });
     }
-    step('Guardrails', 'Scope check passed' + (rules.offTopicRefusal ? '.' : ' (the off-topic rule is OFF, so it would not have been checked anyway).'));
+    step('Harness', 'Scope check passed' + (rules.offTopicRefusal ? '.' : ' (the off-topic rule is OFF, so it would not have been checked anyway).'));
 
     /* Knowledge */
     var ret = R.retrieve(ws.docs, q, (ws.knowledge || {}).chunkSize, (ws.knowledge || {}).topK);
@@ -169,19 +169,19 @@
       var win = U.num(rules.refundDays, 30), lim = U.num(rules.refundLimit, 150);
       var ok = 'Refund approved: ' + U.money(price, 0) + ' for ' + order.id + ' (' + order.item + ').';
       if (!rules.enforceRefund) {
-        step('Guardrails', 'Refund rules are OFF, so the proposal goes straight through. Nothing checks the ' + win + '-day window or the ' + U.money(lim, 0) + ' limit.');
+        step('Harness', 'Refund rules are OFF, so the proposal goes straight through. Nothing checks the ' + win + '-day window or the ' + U.money(lim, 0) + ' limit.');
         reply = ok;
       } else if (days > win) {
-        step('Guardrails', 'Checked window: ' + days + ' days old vs ' + win + ' allowed. Refused in code.');
+        step('Harness', 'Checked window: ' + days + ' days old vs ' + win + ' allowed. Refused in code.');
         reply = "I can't refund " + order.id + '. It was placed ' + days + ' days ago and the refund window is ' + win + ' days.';
       } else if (price > lim && rules.requireApproval) {
-        step('Guardrails', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. "Require human approval" is ON, so the refund is drafted for a person.');
+        step('Harness', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. "Require human approval" is ON, so the refund is drafted for a person.');
         reply = order.id + ' is ' + U.money(price, 0) + ', above the ' + U.money(lim, 0) + ' limit I can refund on my own. I have sent the request to a human for approval.';
       } else if (price > lim) {
-        step('Guardrails', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Refused in code.');
+        step('Harness', 'Checked limit: ' + U.money(price, 0) + ' is above ' + U.money(lim, 0) + '. Refused in code.');
         reply = "I can't refund " + order.id + '. ' + U.money(price, 0) + ' is above the ' + U.money(lim, 0) + ' refund limit.';
       } else {
-        step('Guardrails', 'Checked window (' + days + ' of ' + win + ' days) and limit (' + U.money(price, 0) + ' of ' + U.money(lim, 0) + '). Both pass.');
+        step('Harness', 'Checked window (' + days + ' of ' + win + ' days) and limit (' + U.money(price, 0) + ' of ' + U.money(lim, 0) + '). Both pass.');
         reply = ok;
       }
       if (m.email && /approved|approval/.test(reply)) reply += " I'll send the confirmation by email.";

@@ -68,12 +68,12 @@
       <details class="card how">
         <summary>How the simulator decides</summary>
         <ol>
-          <li><strong>Scope check (Guardrails).</strong> If the off-topic rule is on and the question matches a built-in off-topic word (poem, joke, recipe, and similar) or a "Forbidden topics" line in the instructions, a fixed refusal is sent and the model is not called. If the rule is off, the simulator answers anyway.</li>
+          <li><strong>Scope check (Harness).</strong> If the off-topic rule is on and the question matches a built-in off-topic word (poem, joke, recipe, and similar) or a "Forbidden topics" line in the instructions, a fixed refusal is sent and the model is not called. If the rule is off, the simulator answers anyway.</li>
           <li><strong>Retrieval (Context).</strong> Documents are cut into chunks of whole sentences up to the chunk size. Each chunk is scored by how many of the question's words (after dropping filler words) it contains. The top-K chunks with enough overlap go into the folder.</li>
           <li><strong>Memory.</strong> If memory is on, every saved note goes into the folder. The simulator reads three kinds of notes: <code>name: X</code>, an order id like ORD-9001, and the phrase "prefers email".</li>
           <li><strong>Tools.</strong> An order id (ORD-1234) calls the order lookup. A price, cost or stock question that names a catalog product calls the price/stock lookup. A tool that is switched off is never called.</li>
           <li><strong>Model.</strong> It answers only from the folder, in this order: refund, missing order, order status, price or stock, document sentences, and otherwise "I don't have that information". It never makes up facts. For documents it picks the sentence that matches the most question words, then adds more sentences only if they match at least two new words.</li>
-          <li><strong>Refunds (Guardrails).</strong> The model always proposes to approve a refund. If the refund guardrail is on, code checks the window (days) and the limit ($). Past the window it refuses. Over the limit it drafts the request for a human, or refuses if human approval is off. If the guardrail is off, the proposal goes straight through.</li>
+          <li><strong>Refunds (Harness).</strong> The model always proposes to approve a refund. If the refund guardrail is on, code checks the window (days) and the limit ($). Past the window it refuses. Over the limit it drafts the request for a human, or refuses if human approval is off. If the guardrail is off, the proposal goes straight through.</li>
           <li><strong>Instructions (Context).</strong> The simulator reads four things from the text: whether it contains "cite", an email address to give when unsure, an "Allowed topics:" line, and a "Forbidden topics:" line. It does not understand the rest of the prose, which a real model would.</li>
         </ol>
       </details>
@@ -94,6 +94,7 @@
   <script src="js/grader.js"></script>
   <script src="js/workspaces.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/embed.js"></script>
   <script src="js/ui.js"></script>
 </body>
 </html>
