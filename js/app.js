@@ -10,7 +10,7 @@
   // Sandbox, where readers build their own assistant.
   const GROUPS = [
     { label: "Investigate ShopBot", sub: "Chapters 2 to 9", first: "overview" },
-    { label: "Build your own", sub: "Try it boxes, Appendix G", first: "sandbox" },
+    { label: "Build your own", sub: "By hand boxes, Appendix G", first: "sandbox" },
   ];
   const ROUTES = [
     { id: "overview", label: "Home", icon: "◎" },
@@ -68,7 +68,7 @@
         Sandbox example<br><span class="ver-badge">${sc && sc.example ? global.Charts.esc(sc.example) : "-"}</span>
         <div style="margin-top:10px">${sc && sc.real ? "Your model" : "Test score"}<br><b class="mono" style="font-size:18px;color:${col}">${sc ? sc.pct + "%" : "-"}</b></div>
         <div style="margin-top:10px">${sc ? `${sc.passed} of ${sc.total} tests pass` : "Waiting for the Sandbox"}</div>
-        <div style="margin-top:10px">ShopBot's own score is on the other screens.</div>
+        <div style="margin-top:10px">Separate from ShopBot's quality score.</div>
       </div>`;
   }
 

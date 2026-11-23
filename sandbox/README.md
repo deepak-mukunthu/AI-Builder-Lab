@@ -46,15 +46,16 @@ Five short, made-up HR policies (leave, expenses, remote work, equipment, travel
 
 ## 20-minute guided exercise: ShopBot mini
 
-A small shop with three products, three orders, a shipping and a returns document, a 30-day refund window and a $150 refund limit. Ten tests.
+The same store as the lab's ShopBot screens: the same eight products, the same four orders, the test customer Alex, a shipping and a returns document, a 30-day refund window and a $150 refund limit. It has ten tests instead of the lab's 15 scenarios, and you make each fix yourself with the forms instead of clicking a fix button.
 
 | Order | Item | Price | Placed |
 | --- | --- | --- | --- |
 | ORD-9001 | Pulse Earbuds | $79 | 5 days ago |
+| ORD-9002 | Flux Smartwatch | $149 | 12 days ago |
 | ORD-9003 | Echo Studio Mic | $129 | 45 days ago |
-| ORD-9004 | Echo Studio Mic (2 pack) | $400 | 3 days ago |
+| ORD-9004 | Volt Power Bank 20k, bulk order | $400 | 3 days ago |
 
-Catalog: Echo Studio Mic $129 (out of stock), Pulse Earbuds $79, Volt Power Bank $69.
+Catalog: Aurora Wireless Headphones $199, Nimbus Bluetooth Speaker $89 (out of stock), Flux Smartwatch $149, Pulse Earbuds $79, Zenith Laptop Stand $59, Orbit Wireless Charger $39, Volt Power Bank 20k $69, Echo Studio Mic $129 (out of stock).
 
 1. (2 min) Load the working version and try: "Is the Echo Studio Mic in stock?", "Refund ORD-9003", "Refund ORD-9004". Read the Harness step in each trace.
 2. (2 min) Click **Load broken version**. The score is **30%** (3 of 10). Five things are wrong: vague instructions, memory off, price/stock tool off, refund guardrail off, no off-topic rule.

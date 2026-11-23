@@ -768,9 +768,10 @@
   function sandbox() {
     return `
     <div class="page-head"><h2>Sandbox</h2>
-      <p>Build your own assistant from the same five parts and test it. It has its own small
-      ShopBot, ShopBot mini, with 10 tests. Nothing here changes the agent version or the
-      15 scenarios on the other screens. <a href="sandbox/index.html" target="_blank">Open it in its own tab</a>.</p>
+      <p>On the ShopBot screens you find what is broken and pick a fix. Here you make the same
+      fixes yourself, by hand. ShopBot mini is the same store, with the same products and orders,
+      and 10 tests instead of 15 scenarios. Its test score is separate from ShopBot's quality
+      score, and nothing here changes the other screens. <a href="sandbox/index.html" target="_blank">Open it in its own tab</a>.</p>
     </div>
     <iframe class="sandbox-frame" src="sandbox/index.html" title="Sandbox" scrolling="no"></iframe>`;
   }

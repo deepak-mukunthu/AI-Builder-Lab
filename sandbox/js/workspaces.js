@@ -82,7 +82,9 @@
     { tab: 4, label: 'Tools & Rules: switch the off-topic refusal on', apply: function (w) { w.rules.offTopicRefusal = true; } }
   ];
 
-  /* ---------- ShopBot mini ---------- */
+  /* ---------- ShopBot mini ----------
+     The same store as the ShopBot screens (js/domain.js): the same products,
+     orders, customer Alex, 30-day window and $150 limit. Fewer tests. */
   function shopGood() {
     return {
       name: 'ShopBot mini',
@@ -95,22 +97,28 @@
         'When unsure: Say you do not have that information and contact support@shopbot.example.'
       ].join('\n'),
       docs: [
-        { title: 'Shipping', text: 'Standard shipping takes 3 to 5 business days. Orders over $50 ship free. Express shipping takes 1 to 2 business days and costs $12.' },
+        { title: 'Shipping', text: 'Standard shipping takes 3 to 5 business days. Items of $75 or more ship free. Express shipping takes 1 to 2 business days and costs $12.' },
         { title: 'Returns', text: 'Items can be returned within 30 days of delivery in original packaging. Refunds go back to the original payment method within 5 business days.' }
       ],
       knowledge: { chunkSize: 300, topK: 3 },
-      memory: { enabled: true, notes: 'name: Sam\nlast order: ORD-9001\nprefers email' },
+      memory: { enabled: true, notes: 'name: Alex\nlast order: ORD-9001\nprefers email' },
       tools: {
         orders: true, prices: true,
         orderData: [
           { id: 'ORD-9001', item: 'Pulse Earbuds', price: 79, daysAgo: 5 },
+          { id: 'ORD-9002', item: 'Flux Smartwatch', price: 149, daysAgo: 12 },
           { id: 'ORD-9003', item: 'Echo Studio Mic', price: 129, daysAgo: 45 },
-          { id: 'ORD-9004', item: 'Echo Studio Mic (2 pack)', price: 400, daysAgo: 3 }
+          { id: 'ORD-9004', item: 'Volt Power Bank 20k, bulk order', price: 400, daysAgo: 3 }
         ],
         catalog: [
-          { name: 'Echo Studio Mic', price: 129, stock: 0 },
-          { name: 'Pulse Earbuds', price: 79, stock: 24 },
-          { name: 'Volt Power Bank', price: 69, stock: 58 }
+          { name: 'Aurora Wireless Headphones', price: 199, stock: 42 },
+          { name: 'Nimbus Bluetooth Speaker', price: 89, stock: 0 },
+          { name: 'Flux Smartwatch', price: 149, stock: 8 },
+          { name: 'Pulse Earbuds', price: 79, stock: 120 },
+          { name: 'Zenith Laptop Stand', price: 59, stock: 25 },
+          { name: 'Orbit Wireless Charger', price: 39, stock: 3 },
+          { name: 'Volt Power Bank 20k', price: 69, stock: 60 },
+          { name: 'Echo Studio Mic', price: 129, stock: 0 }
         ]
       },
       rules: { enforceRefund: true, refundDays: 30, refundLimit: 150, requireApproval: true, offTopicRefusal: true },
