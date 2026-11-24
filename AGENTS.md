@@ -41,21 +41,17 @@ Sandbox scores, broken version first, then after each documented fix:
 
 ## Run ShopBot without a browser
 
-The scripts set globals on `window`, so they load in a Node `vm` context. Load order matters.
+`tools/report.js` runs ShopBot in Node and prints the same numbers the screens show.
 
-```js
-const vm = require('vm'), fs = require('fs');
-const ctx = vm.createContext({ console }); ctx.window = ctx;
-for (const f of ['domain', 'scenarios', 'hotspots', 'agent', 'evals', 'store'])
-  vm.runInContext(fs.readFileSync(`js/${f}.js`, 'utf8'), ctx);
-const S = ctx.Store;
-S.simulate(1);
-console.log(S.State.config.version, Math.round(S.State.metrics.quality * 100));
-const h = S.State.hotspots.find(x => x.fix.label === 'Enable customer profile memory');
-S.applyFix(h);  // re-simulates and creates the next version
+```
+node tools/report.js                 v1: metrics, failing scenarios, hotspots
+node tools/report.js --fixes 3       after the first 3 fixes in the book's order (v4)
+node tools/report.js --all           after all 7 (v8)
+node tools/report.js --trace S03     add one scenario's full trace
+node tools/report.js --all --json    the same report as JSON
 ```
 
-`S.State.hotspots` lists the open failure groups, ranked, each with a `fix`. `S.State.metrics` holds quality, task success, grounding, policy safety and the rest. `S.resetAgent()` returns to v1.
+Use `--fixes N` to see where a reader should be after N fixes, and `--trace` to see what a failing scenario's trace shows. The script loads the files in `js/` into a Node `vm` context. Read it as an example if you want to drive the store yourself. `Store.State.hotspots` lists the open failure groups with their `fix`, `Store.applyFix(h)` applies one and creates the next version, and `Store.resetAgent()` returns to v1.
 
 ## Files
 
@@ -69,6 +65,7 @@ js/hotspots.js     failure grouping and the fix playbook
 js/store.js        state, simulation, tagging, versions
 js/views.js        screens
 js/app.js          routing and events
+tools/report.js    command-line ShopBot report
 sandbox/js/        the Sandbox (workspaces.js holds both examples)
 sandbox/tests/     Node checks for the Sandbox
 docs/              ARCHITECTURE.md (design), DEMO.md (guided tour)
@@ -84,5 +81,5 @@ docs/              ARCHITECTURE.md (design), DEMO.md (guided tour)
 ## Changing the code
 
 - Plain JavaScript, no dependencies, no modules, no build step. Keep it that way so `index.html` still opens from `file://`.
-- Any change that moves a number in the tables above changes what the book says. Run `node sandbox/tests/run.js` and the headless ShopBot run before and after, and say which numbers moved.
+- Any change that moves a number in the tables above changes what the book says. Run `node sandbox/tests/run.js` and `node tools/report.js --fixes N` for each N before and after, and say which numbers moved.
 - Don't commit local tool folders such as `.sf/`.

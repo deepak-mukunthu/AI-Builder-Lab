@@ -123,6 +123,7 @@ js/store.js           state, simulation, tagging, version history and config cha
 js/charts.js          SVG gauges, bars, sparklines, the loop ring, timelines
 js/views.js           per-page render functions
 js/app.js             routing and event wiring
+tools/report.js       ShopBot from the command line: node tools/report.js --all
 sandbox/              the Sandbox, a separate page shown in the Sandbox screen
 sandbox/tests/run.js  Node checks for the Sandbox: node sandbox/tests/run.js
 ```
