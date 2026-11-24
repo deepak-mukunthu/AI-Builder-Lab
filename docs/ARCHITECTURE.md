@@ -33,7 +33,7 @@ re-renders the active view. Views are pure `state → HTML string` functions.
 
 | File | Responsibility |
 |------|----------------|
-| `js/domain.js` | The business: product catalog, refund policy, customer profiles, and `defaultConfig()` — the tunable agent config whose knobs the fixes mutate. |
+| `js/domain.js` | The business: product catalog, refund policy, customer profiles, and `defaultConfig()`, the tunable agent config whose knobs the fixes mutate. |
 | `js/scenarios.js` | The conversation bank. Each scenario declares `expect` (ground truth) so evals can score objectively. |
 | `js/agent.js` | The **layered agent simulator**. `run(scenario, config)` walks the harness → memory → context → model → tools pipeline, emits ordered spans, and lets each layer's config decide whether a seeded defect fires. Returns a Trace. |
 | `js/evals.js` | `gradeTrace()` scores one trace against ground truth; `evaluate()` aggregates a batch into rate metrics, latency percentiles, tokens, containment, and the blended Quality Score. |
@@ -59,12 +59,12 @@ A **Trace** is the unit of observability. Each `run()` produces:
 
 Spans carry the real artifacts a reviewer needs:
 
-- **`context / window.assemble`** — the assembled prompt blocks (system, catalog slice,
+- **`context / window.assemble`**: the assembled prompt blocks (system, catalog slice,
   policy, memory, user), token count, `catalogTopK`, and system-prompt version.
-- **`model / generate.intent`** — model name, temperature, prompt tokens, classified intent.
-- **`tools / tool.call`** — tool name, arguments, result, and data source (live vs stale).
-- **`memory / profile.recall`** — recall hit/miss and the recalled order IDs.
-- **`harness / guardrail.refund`** — the window/cap decision when the guardrail is on.
+- **`model / generate.intent`**: model name, temperature, prompt tokens, classified intent.
+- **`tools / tool.call`**: tool name, arguments, result, and data source (live vs stale).
+- **`memory / profile.recall`**: recall hit/miss and the recalled order IDs.
+- **`harness / guardrail.refund`**: the window/cap decision when the guardrail is on.
 
 ## Determinism
 
@@ -97,6 +97,6 @@ the resulting quality delta is attributable to exactly that change.
 A real agent would call an LLM here. This lab models the **same layered pipeline** an LLM
 agent runs through, but deterministically. That trade buys three things essential to a
 teaching tool: reproducibility (fair before/after comparisons), zero setup (no API keys or
-cost), and pedagogical clarity (each defect maps cleanly to one layer). The concepts —
-trace capture, layered attribution, eval-driven metrics, hotspot detection, layered fixes —
+cost), and pedagogical clarity (each defect maps cleanly to one layer). The concepts
+(trace capture, layered attribution, eval-driven metrics, hotspot detection, layered fixes)
 transfer directly to a production agent backed by a real model.
